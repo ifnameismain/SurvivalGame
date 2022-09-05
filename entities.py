@@ -134,9 +134,9 @@ class Player:
 class Crosshair:
     def __init__(self):
         self.x, self.y = 0, 0
-        self.width = 1
-        self.size = 4
-        self.gap = 2
+        self.width = 2
+        self.size = 8
+        self.gap = 4
 
     def update(self):
         self.x, self.y = get_mouse()
@@ -151,15 +151,15 @@ class Crosshair:
 
 
 class ExpPoint:
-    point = pg.Surface((5, 5))
-    pg.draw.circle(point, (135, 206, 250), (3, 3), 2)
+    point = pg.Surface((8, 8))
+    pg.draw.circle(point, (135, 206, 250), (4, 4), 4)
     point.set_colorkey((0, 0, 0))
 
     def __init__(self, x, y, value):
         self.pos = pg.Vector2(x, y)
         self.value = value
         self.drawable = False
-        self.rect = pg.Rect(x-2, y-2, 4, 4)
+        self.rect = pg.Rect(x-4, y-4, 8, 8)
 
     def draw(self, win, camera):
         win.blit(ExpPoint.point, camera.object_pos(self.pos.x, self.pos.y))

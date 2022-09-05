@@ -79,7 +79,8 @@ class StatusCircle:
 
 
 class UpgradeCard:
-    card = create_card(50, 80, 6)
+    card_width, card_height = 100, 160
+    card = create_card(card_width, card_height, 10)
 
     def __init__(self, x, y, json_path):
         self.x, self.y = x, y
@@ -88,23 +89,24 @@ class UpgradeCard:
 
     def draw(self, win):
         win.blit(self.card, (self.x, self.y))
-        name, name_pos = centred_text(self.info['name'], config.FONTS['name'], (self.x + 25, self.y + 15),
+        name, name_pos = centred_text(self.info['name'], config.FONTS['name'], (self.x + self.card_width//2, self.y + 30),
                                       (255, 248, 220))
         win.blit(name, name_pos)
-        typ, typ_pos = centred_text(self.info['type'], config.FONTS['type'], (self.x + 25, self.y + 30),
+        typ, typ_pos = centred_text(self.info['type'], config.FONTS['type'], (self.x + self.card_width//2, self.y + 60),
                                     (154, 205, 50))
         win.blit(typ, typ_pos)
-        pg.draw.circle(win, (255, 255, 255), (self.x + 25, self.y + 45), 4)
-        dmg, dmg_pos = centred_text(f"{self.info['dmg']} / {self.info['cd']}s", config.FONTS['name'], (self.x + 25, self.y + 60),
+        pg.draw.circle(win, (255, 255, 255), (self.x + self.card_width//2, self.y + 90), 4)
+        dmg, dmg_pos = centred_text(f"{self.info['dmg']} / {self.info['cd']}s", config.FONTS['name'],
+                                    (self.x + self.card_width//2, self.y + 120),
                                     (165, 42, 42))
         win.blit(dmg, dmg_pos)
 
 
 class HUD:
     def __init__(self):
-        self.health_bar = StatusBar(50, 250, 100, 10, (255, 0, 0))
-        self.exp_bar = StatusBar(50, 270, 100, 10, (255, 239, 213))
-        self.circle = StatusCircle(180, 250, 5, (175, 238, 238))
+        self.health_bar = StatusBar(100, 500, 200, 20, (255, 0, 0))
+        self.exp_bar = StatusBar(100, 540, 200, 20, (255, 239, 213))
+        self.circle = StatusCircle(360, 500, 10, (175, 238, 238))
 
     def update(self, health, level, dash, wave, wave_timer, powers: list):
         self.health_bar.update(health)

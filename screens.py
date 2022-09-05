@@ -10,7 +10,7 @@ from enemy import *
 
 class GameScreen:
     def __init__(self):
-        self.player = Player(50, 50)
+        self.player = Player(0, 0)
         self.map = Map()
         self.hud = HUD()
         self.next_state = None
@@ -34,7 +34,7 @@ class GameScreen:
             self.enemies.append(BaseEnemy(self.player.pos.x + random.randint(0, config.UNSCALED_SIZE[0]),
                                           self.player.pos.y + random.choice([-config.UNSCALED_SIZE[1] - 10,
                                                                              config.UNSCALED_SIZE[1] + 10]),
-                                          5, 50, 10, 0.6, (210, 105, 30)))
+                                          10, 50, 10, 1, (210, 105, 30)))
 
     def check_event(self, event):
         if event.type == pg.KEYDOWN:
@@ -139,7 +139,7 @@ class UpgradeScreen:
 
     def get_upgrade_cards(self):
         # do something here. probably random
-        self.upgrade_cards = [UpgradeCard((x * config.UNSCALED_SIZE[0]//8) - 25, 100,
+        self.upgrade_cards = [UpgradeCard((x * config.UNSCALED_SIZE[0]//8) - 50, 200,
                                           "upgrades/bullet.json") for x in [3, 4, 5]]
 
     def check_event(self, event):
@@ -147,7 +147,7 @@ class UpgradeScreen:
             if event.button == 1:
                 x, y = get_mouse()
                 for card in self.upgrade_cards:
-                    if card.x < x < card.x + 50 and card.y < y < card.y + 80:
+                    if card.x < x < card.x + card.card_width and card.y < y < card.y + card.card_height:
                         self.next_state = "game"
 
     def update(self):
