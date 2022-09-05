@@ -1,0 +1,8 @@
+{
+  "name": "bullet",
+  "type": "projectile",
+  "dmg": 30,
+  "cd": 2,
+  "status": null,
+  "status chance": 0
+}
