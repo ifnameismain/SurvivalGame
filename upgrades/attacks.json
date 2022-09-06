@@ -1,0 +1,47 @@
+{
+  "Bullet": {
+    "class": "Bullet",
+    "type": "projectile",
+    "dmg": 30,
+    "cd": 2,
+    "status": null,
+    "status chance": 0,
+    "description": "Ordinary bullet projectile"
+  },
+  "Fire Bullet": {
+    "class": "Bullet",
+    "type": "projectile",
+    "dmg": 28,
+    "cd": 2,
+    "status": "burn",
+    "status chance": 100,
+    "description": "Fire type bullet projectile. Inflicts burn"
+  },
+  "Ice Bullet": {
+    "class": "Bullet",
+    "type": "projectile",
+    "dmg": 28,
+    "cd": 2,
+    "status": "slow",
+    "status chance": 100,
+    "description": "Ice type bullet projectile. Inflicts slow"
+  },
+  "Poison Bullet": {
+    "class": "Bullet",
+    "type": "projectile",
+    "dmg": 28,
+    "cd": 2,
+    "status": "poison",
+    "status chance": 100,
+    "description": "Ice type bullet projectile. Inflicts poison"
+  },
+  "Hollow Bullet": {
+    "class": "Bullet",
+    "type": "projectile",
+    "dmg": 28,
+    "cd": 2,
+    "status": "bleed",
+    "status chance": 100,
+    "description": "Hollow point bullet projectile. Inflicts bleed"
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "Health Up": {
+    "stat": "max hp",
+    "type": "flat",
+    "amount": 10,
+    "description": "Flat increase to your maximum hp"
+  },
+  "Damage Up": {
+    "stat": "p-dmg",
+    "type": "flat",
+    "amount": 1,
+    "description": "Flat increase to normal damage"
+  },
+  "Status Up": {
+    "stat": "s-dmg",
+    "type": "flat",
+    "amount": 0.5,
+    "description": "Flat increase to status effects"
+  },
+  "Health Boost": {
+    "stat": "max hp",
+    "type": "percent",
+    "amount": 0.04,
+    "description": "Scalar increase to your maximum hp"
+  },
+  "Damage Boost": {
+    "stat": "p-dmg",
+    "type": "percent",
+    "amount": 0.02,
+    "description": "Scalar increase to your physical damage"
+  },
+  "Status Boost": {
+    "stat": "s-dmg",
+    "type": "percent",
+    "amount": 0.02,
+    "description": "Scalar increase to your status effects"
+  },
+  "Movement Speed":{
+    "stat": "speed",
+    "type": "percent",
+    "amount": 0.03,
+    "description": "Scalar increase to your speed"
+  }
+}

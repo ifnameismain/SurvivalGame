@@ -1,14 +1,17 @@
 import pygame as pg
 
+
 class Bullet:
-    def __init__(self, x, y, velocity, color, size, notification, dmg_mod=1):
+    def __init__(self, x, y, velocity, color, size, notification, p_mod=1, s_mod=1, p_flat=0, s_flat=0, status=None):
         self.pos = pg.Vector2(x, y)
         self.velocity = velocity
         self.color = color
         self.size = size
         self.hsize = size//2
         self.rect = pg.Rect(x-size, y-size, 2*size, 2*size)
-        self.dmg = {"normal": int(30*dmg_mod)}
+        self.dmg = {"normal": int(30 * p_mod + p_flat)}
+        if status is not None:
+            self.dmg[status] = 3 * s_mod + s_flat
         self.surface = pg.Surface((size, size))
         self.surface.set_colorkey((0, 0, 0))
         self.create_surface()

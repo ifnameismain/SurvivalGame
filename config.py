@@ -14,7 +14,7 @@ FONTS = {"title": pg.freetype.SysFont("arial", 48, True),
          "name": pg.freetype.SysFont("arial", 24, True),
          "type": pg.freetype.SysFont("arial", 16, True),
          "upgrade": pg.freetype.SysFont("arial", 32, True),
-         "dmg notification": pg.freetype.SysFont("arial", 10, True)}
+         "dmg notification": pg.freetype.SysFont("arial", 14, True)}
 PLAYER_WIDTH = 18
 BACKGROUND = (120, 120, 120)
 ALT_BACKGROUND = (100, 100, 100)

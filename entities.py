@@ -98,7 +98,7 @@ class Player:
                 velocity = pg.Vector2(base_velocity.x * attack['speed'], base_velocity.y * attack['speed'])
                 self.casts.append(ALL_ATTACKS[attack['class']](self.pos.x, self.pos.y, velocity,
                                   notification=self.dmg_notification[attack_type],
-                                                               dmg_mod=self.stats['m-dmg'], **attack['inits']))
+                                                               p_mod=self.stats['m-dmg'], **attack['inits']))
                 attack['timer'] = 0
             else:
                 attack['timer'] += 1

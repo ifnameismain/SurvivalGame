@@ -11,11 +11,45 @@
   },
   "Fire Bullet": {
     "class": "Bullet",
-    "dmg": 20,
+    "dmg": 28,
     "speed": 7,
     "cd": 2,
+    "status": "burn",
     "inits": {
-      "color": [255, 150, 0],
+      "color": [245, 183, 177],
+      "size": 4
+    }
+  },
+  "Ice Bullet": {
+    "class": "Bullet",
+    "dmg": 28,
+    "speed": 7,
+    "cd": 2,
+    "status": "slow",
+    "inits": {
+      "color": [174, 214, 241],
+      "size": 4
+    }
+  },
+  "Poison Bullet": {
+    "class": "Bullet",
+    "dmg": 28,
+    "speed": 7,
+    "cd": 2,
+    "status": "poison",
+    "inits": {
+      "color": [171, 235, 198],
+      "size": 4
+    }
+  },
+  "Hollow Bullet": {
+    "class": "Bullet",
+    "dmg": 28,
+    "speed": 7,
+    "cd": 2,
+    "status": "bleed",
+    "inits": {
+      "color": [210, 180, 222],
       "size": 4
     }
   }

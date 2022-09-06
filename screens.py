@@ -160,8 +160,8 @@ class UpgradeScreen:
 
     def get_upgrade_cards(self):
         # do something here. probably random
-        self.upgrade_cards = [UpgradeCard((x * config.UNSCALED_SIZE[0]//6) - UpgradeCard.card_width//2, 100,
-                                          "upgrades/bullet.json") for x in [2, 3, 4]]
+        self.upgrade_cards = [UpgradeCard((x * config.UNSCALED_SIZE[0]//6) - UpgradeCard.card_width // 2, 100,
+                                          "upgrades/attacks.json") for x in [2, 3, 4]]
 
     def check_event(self, event):
         if event.type == pg.MOUSEBUTTONDOWN:
