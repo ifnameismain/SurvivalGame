@@ -79,41 +79,44 @@ class StatusCircle:
 
 
 class UpgradeCard:
-    card_width, card_height = 100, 160
+    card_width, card_height = 180, 320
     card = create_card(card_width, card_height, 10)
+    pg.draw.rect(card, config.BACKGROUND, (card_width//3, 160-(card_width//2 - card_width//3), card_width//3, card_width//3))
+    pg.draw.rect(card, (255, 255, 255), (card_width//3, 160-(card_width//2 - card_width//3), card_width//3, card_width//3), 1)
 
     def __init__(self, x, y, json_path):
         self.x, self.y = x, y
         self.info = json.load(open(json_path, 'r'))
         self.corner_radius = 6
+        self.name, self.name_pos = centred_text(self.info['name'], config.FONTS['name'], (self.x + self.card_width//2, self.y + 50),
+                                      (255, 248, 220))
+        self.typ, self.typ_pos = centred_text(self.info['type'], config.FONTS['type'],
+                                    (self.x + self.card_width // 2, self.y + 90),
+                                    (205, 92, 92))
+        self.dmg, self.dmg_pos = centred_text(f"{self.info['dmg']} / {self.info['cd']}s", config.FONTS['name'],
+                                    (self.x + self.card_width // 2, self.y + 260),
+                                    (205, 92, 92))
 
     def draw(self, win):
         win.blit(self.card, (self.x, self.y))
-        name, name_pos = centred_text(self.info['name'], config.FONTS['name'], (self.x + self.card_width//2, self.y + 30),
-                                      (255, 248, 220))
-        win.blit(name, name_pos)
-        typ, typ_pos = centred_text(self.info['type'], config.FONTS['type'], (self.x + self.card_width//2, self.y + 60),
-                                    (154, 205, 50))
-        win.blit(typ, typ_pos)
-        pg.draw.circle(win, (255, 255, 255), (self.x + self.card_width//2, self.y + 90), 4)
-        dmg, dmg_pos = centred_text(f"{self.info['dmg']} / {self.info['cd']}s", config.FONTS['name'],
-                                    (self.x + self.card_width//2, self.y + 120),
-                                    (165, 42, 42))
-        win.blit(dmg, dmg_pos)
+        win.blit(self.name, self.name_pos)
+        win.blit(self.typ, self.typ_pos)
+        pg.draw.circle(win, (255, 255, 255), (self.x + self.card_width//2, self.y + 160), 4)
+        win.blit(self.dmg, self.dmg_pos)
 
 
 class HUD:
     def __init__(self):
-        self.health_bar = StatusBar(100, 500, 200, 20, (255, 0, 0))
+        self.hp_bar = StatusBar(100, 500, 200, 20, (255, 0, 0))
         self.exp_bar = StatusBar(100, 540, 200, 20, (255, 239, 213))
         self.circle = StatusCircle(360, 500, 10, (175, 238, 238))
 
-    def update(self, health, level, dash, wave, wave_timer, powers: list):
-        self.health_bar.update(health)
+    def update(self, hp, level, dash, wave, wave_timer, powers: list):
+        self.hp_bar.update(hp)
         self.exp_bar.update(level)
         self.circle.update(dash)
 
     def draw(self, win):
-        self.health_bar.draw(win)
+        self.hp_bar.draw(win)
         self.circle.draw(win)
         self.exp_bar.draw(win)

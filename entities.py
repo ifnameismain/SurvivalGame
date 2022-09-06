@@ -15,7 +15,7 @@ class Player:
         self.rotation = 0
         self.previous_pos = pg.Vector2(x, y)
         self.vel = pg.Vector2(x, y)
-        self.stats = {"health": 100, "max health": 100, "speed": 1, "attack speed": 1, "m-dmg": 1, "lvl": 1, "exp": 0}
+        self.stats = {"hp": 100, "max hp": 100, "speed": 2, "attack speed": 1, "m-dmg": 1, "lvl": 1, "exp": 0}
         self.internals = {"dash cd": 1.5, "dash": 0.2, "dash timer": 0, "dash cd timer": 0}
         self.controls = {'left': pg.K_a, 'right': pg.K_d, 'up': pg.K_w, 'down': pg.K_s,
                          'dash': pg.K_SPACE}

@@ -4,7 +4,7 @@ import pygame as pg
 
 
 class BaseEnemy:
-    def __init__(self, x, y, radius, health, dmg, speed, color):
+    def __init__(self, x, y, radius, hp, dmg, speed, color):
         self.pos = pg.Vector2(x, y)
         self.color = color
         self.radius = radius
@@ -13,32 +13,29 @@ class BaseEnemy:
         self.previous_pos = pg.Vector2(x, y)
         self.vel = pg.Vector2(x, y)
         self.speed = speed
+        self.stats = {"max hp": hp, "hp": hp, "dmg": dmg, "hp percentage": 1}
         self.timer = 0
         self.max_time = 15
-        self.torch = False
-        self.health = health
-        self.max_health = health
-        self.health_percentage = 1
         self.dmg = dmg
         self.type = "base"
-        self.exp = 6
+        self.exp = 15
 
     def calculate_dmg(self, dmg):
-        self.health -= dmg
-        if self.health < 0:
-            self.health = 0
-            self.health_percentage = 0
+        self.stats['hp'] -= dmg
+        if self.stats['hp'] < 0:
+            self.stats['hp'] = 0
+            self.stats['hp percentage'] = 0
         else:
-            self.health_percentage = self.health/self.max_health
+            self.stats['hp percentage'] = self.stats['hp']/self.stats['max hp']
 
     def converge(self, other):
         if other.radius > self.radius:
             self.radius = other.radius + self.radius / 3
         else:
             self.radius += other.radius / 3
-        self.health += other.health
-        self.max_health += other.max_health
-        self.health_percentage = self.health / self.max_health
+        self.stats['hp'] += other.stats['hp']
+        self.stats['max hp'] += other.max_hp
+        self.stats['hp percentage'] = self.stats['hp'] / self.stats['max hp']
         self.exp += other.exp
 
     def update(self, player_pos):
@@ -61,12 +58,12 @@ class BaseEnemy:
 
     def draw(self, win, camera):
         x, y = camera.object_pos(self.pos.x, self.pos.y)
-        if self.health_percentage == 1:
+        if self.stats['hp percentage'] == 1:
             pg.draw.circle(win, self.color, (x, y), self.radius)
-        elif self.health_percentage > 0.75:
+        elif self.stats['hp percentage'] > 0.75:
             pg.draw.circle(win, self.color, (x, y), self.radius, draw_top_left=True,
                            draw_bottom_right=True, draw_bottom_left=True)
-        elif self.health_percentage > 0.5:
+        elif self.stats['hp percentage'] > 0.5:
             pg.draw.circle(win, self.color, (x, y), self.radius, draw_top_left=True, draw_bottom_left=True)
         else:
             pg.draw.circle(win, self.color, (x, y), self.radius, draw_top_left=True)
@@ -83,7 +80,7 @@ class Dasher(BaseEnemy):
         self.cooldown_timer = 20
         self.dash_pos = pg.Vector2(x, y)
         self.dash_distance = 50
-        self.m = 0
+        self.dash_vel = pg.Vector2(0, 0)
         self.type = "dasher"
         self.max_distance = 0
         self.line = [(0, 0), (0, 0)]
@@ -120,7 +117,7 @@ class Dasher(BaseEnemy):
                 rads %= 2 * pi
                 x = self.pos.x + cos(rads)*self.max_distance
                 y = self.pos.y + sin(rads) * self.max_distance
-                self.line = [(self.pos.x, self.pos.y), (x,y)]
+                self.line = [(self.pos.x, self.pos.y), (x, y)]
             self.max_distance += 1
         else:
             if not self.dash_calculated:
@@ -130,24 +127,16 @@ class Dasher(BaseEnemy):
                     m = abs(rise / run)
                 else:
                     m = 1000
-                self.m = m
-                if self.pos.x > player_pos.x:
-                    self.dash_pos.x -= 2*self.dash_speed / (m + 1)
-                else:
-                    self.dash_pos.x += 2*self.dash_speed / (m + 1)
-                if self.pos.y > player_pos.y:
-                    self.dash_pos.y -= 2*self.dash_speed * m / (m + 1)
-                else:
-                    self.dash_pos.y += 2*self.dash_speed * m / (m + 1)
+                self.dash_vel.update(2*self.dash_speed / (m + 1), 2*self.dash_speed * m / (m + 1))
                 self.dash_calculated = True
             if self.pos.x > self.dash_pos.x:
-                self.pos.x -= self.dash_speed / (self.m + 1)
+                self.pos.x -= self.dash_vel.x
             else:
-                self.pos.x += self.dash_speed / (self.m + 1)
+                self.pos.x += self.dash_vel.x
             if self.pos.y > self.dash_pos.y:
-                self.pos.y -= self.dash_speed * self.m / (self.m + 1)
+                self.pos.y -= self.dash_vel.y
             else:
-                self.pos.y += self.dash_speed * self.m / (self.m + 1)
+                self.pos.y += self.dash_vel.y
             if self.pos.distance_to(self.dash_pos) < 1.5 * self.dash_speed:
                 self.dashing = False
                 self.dash_calculated = False

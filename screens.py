@@ -65,11 +65,11 @@ class GameScreen:
                 continue
             for e in self.enemies.copy():
                 if bullet.rect.colliderect(e.rect):
-                    self.player.casts.remove(bullet)
                     e.calculate_dmg(bullet.dmg * self.player.stats['m-dmg'])
-                    if e.health == 0:
+                    if e.hp == 0:
                         self.exp_points.append(ExpPoint(e.pos.x, e.pos.y, e.exp))
                         self.enemies.remove(e)
+                    self.player.casts.remove(bullet)
                     break
         for exp in self.exp_points.copy():
             if abs(self.player.pos.x - exp.pos.x) < config.UNSCALED_SIZE[0] // 2 and \
@@ -82,7 +82,7 @@ class GameScreen:
                     continue
             else:
                 exp.drawable = False
-        self.hud.update(self.player.stats['health'] / self.player.stats['max health'],
+        self.hud.update(self.player.stats['hp'] / self.player.stats['max hp'],
                         self.player.exp_percentage, self.player.get_dash_status(),
                         self.wave, self.wave_timer, [])
         self.crosshair.update()
@@ -132,6 +132,8 @@ class UpgradeScreen:
         self.upgrade_cards = []
         self.get_upgrade_cards()
         self.next_state = None
+        self.upgrade_text, self.upgrade_pos = centred_text("Choose Upgrade...", config.FONTS['upgrade'],
+                                                           (config.UNSCALED_SIZE[0]//2, 50), (255, 248, 220))
 
     def reset(self):
         self.next_state = None
@@ -139,8 +141,8 @@ class UpgradeScreen:
 
     def get_upgrade_cards(self):
         # do something here. probably random
-        self.upgrade_cards = [UpgradeCard((x * config.UNSCALED_SIZE[0]//8) - 50, 200,
-                                          "upgrades/bullet.json") for x in [3, 4, 5]]
+        self.upgrade_cards = [UpgradeCard((x * config.UNSCALED_SIZE[0]//6) - UpgradeCard.card_width//2, 100,
+                                          "upgrades/bullet.json") for x in [2, 3, 4]]
 
     def check_event(self, event):
         if event.type == pg.MOUSEBUTTONDOWN:
@@ -159,3 +161,4 @@ class UpgradeScreen:
         surface.blit(self.screen, (0, 0))
         for card in self.upgrade_cards:
             card.draw(surface)
+        surface.blit(self.upgrade_text, self.upgrade_pos)
