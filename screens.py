@@ -24,6 +24,8 @@ class GameScreen:
         self.offset = 0
         self.timer = 0
         self.camera = PlayerCamera()
+        self.map.update_background(self.player.pos)
+        self.notifications = []
 
     def reset(self):
         self.next_state = None
@@ -32,8 +34,8 @@ class GameScreen:
     def spawn(self):
         if random.uniform(0, 1) < self.spawn_rate:
             self.enemies.append(BaseEnemy(self.player.pos.x + random.randint(0, config.UNSCALED_SIZE[0]),
-                                          self.player.pos.y + random.choice([-config.UNSCALED_SIZE[1] - 10,
-                                                                             config.UNSCALED_SIZE[1] + 10]),
+                                          self.player.pos.y + random.choice([-config.UNSCALED_SIZE[1]//2 - 10,
+                                                                             config.UNSCALED_SIZE[1]//2 + 10]),
                                           10, 50, 10, 1, (210, 105, 30)))
 
     def check_event(self, event):
@@ -53,6 +55,10 @@ class GameScreen:
         self.player.update()
         for e in self.enemies.copy():
             e.update(self.player.pos)
+            if e.stats['hp'] == 0:
+                self.exp_points.append(ExpPoint(e.pos.x, e.pos.y, e.exp))
+                self.enemies.remove(e)
+                continue
             for ee in self.enemies.copy():
                 if e != ee and e.type == ee.type:
                     if e.pos.distance_to(ee.pos) < e.radius:
@@ -65,10 +71,8 @@ class GameScreen:
                 continue
             for e in self.enemies.copy():
                 if bullet.rect.colliderect(e.rect):
-                    e.calculate_dmg(bullet.dmg * self.player.stats['m-dmg'])
-                    if e.hp == 0:
-                        self.exp_points.append(ExpPoint(e.pos.x, e.pos.y, e.exp))
-                        self.enemies.remove(e)
+                    e.add_dmg(bullet.dmg)
+                    self.notifications.append([30, bullet.get_notification()])
                     self.player.casts.remove(bullet)
                     break
         for exp in self.exp_points.copy():
@@ -86,6 +90,7 @@ class GameScreen:
                         self.player.exp_percentage, self.player.get_dash_status(),
                         self.wave, self.wave_timer, [])
         self.crosshair.update()
+        self.map.update_background(self.player.pos)
         return self.next_state
 
     def draw(self, surface):
@@ -100,12 +105,21 @@ class GameScreen:
         self.player.draw(surface, self.camera)
         self.hud.draw(surface)
         self.crosshair.draw(surface)
+        for notification in self.notifications.copy():
+            if notification[0] == 0:
+                self.notifications.remove(notification)
+            else:
+                surface.blit(notification[1][0], self.camera.object_pos(*notification[1][1]))
+                notification[0] -= 1
 
 
 class PauseScreen:
     def __init__(self):
         self.screen = None
         self.next_state = None
+        self.pause_text, self.pause_pos = centred_text("paused...", config.FONTS['upgrade'],
+                                                       (config.UNSCALED_SIZE[0] // 2, config.UNSCALED_SIZE[1] // 2),
+                                                       (255, 248, 220))
 
     def reset(self):
         self.next_state = None
@@ -124,6 +138,7 @@ class PauseScreen:
 
     def draw(self, surface):
         surface.blit(self.screen, (0, 0))
+        surface.blit(self.pause_text, self.pause_pos)
 
 
 class UpgradeScreen:
@@ -162,3 +177,37 @@ class UpgradeScreen:
         for card in self.upgrade_cards:
             card.draw(surface)
         surface.blit(self.upgrade_text, self.upgrade_pos)
+
+
+class MenuScreen:
+    def __init__(self):
+        self.next_state = None
+        self.game = GameScreen()
+        self.title_card = create_card(600, 150, 15)
+        self.title_text, self.title_pos = centred_text("Survival", config.FONTS['title'],
+                                                       (config.UNSCALED_SIZE[0]//2, 200), (255, 248, 220))
+        self.space_text, self.space_pos = centred_text("Press Space to Start", config.FONTS['upgrade'],
+                                                       (config.UNSCALED_SIZE[0] // 2, 400), (255, 248, 220))
+
+    def reset(self):
+        self.next_state = None
+        self.game = GameScreen()
+
+    def check_event(self, event):
+        if event.type == pg.KEYDOWN:
+            if event.key == pg.K_SPACE:
+                self.next_state = 'game'
+        elif event.type == pg.KEYUP:
+            pass
+
+    def update(self):
+        for event in pg.event.get():
+            self.check_event(event)
+        self.game.update()
+        return self.next_state
+
+    def draw(self, surface):
+        self.game.draw(surface)
+        surface.blit(self.title_card, (config.UNSCALED_SIZE[0]//2-300, 125))
+        surface.blit(self.title_text, self.title_pos)
+        surface.blit(self.space_text, self.space_pos)

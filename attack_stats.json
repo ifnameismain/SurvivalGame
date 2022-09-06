@@ -1,10 +1,21 @@
 {
   "Bullet": {
+    "class": "Bullet",
     "dmg": 20,
     "speed": 7,
     "cd": 2,
     "inits": {
       "color": [255, 255, 255],
+      "size": 4
+    }
+  },
+  "Fire Bullet": {
+    "class": "Bullet",
+    "dmg": 20,
+    "speed": 7,
+    "cd": 2,
+    "inits": {
+      "color": [255, 150, 0],
       "size": 4
     }
   }

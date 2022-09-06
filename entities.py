@@ -20,10 +20,13 @@ class Player:
         self.controls = {'left': pg.K_a, 'right': pg.K_d, 'up': pg.K_w, 'down': pg.K_s,
                          'dash': pg.K_SPACE}
         self.move_state = {control: False for control in self.controls.values()}
+        self.dmg_notification = {}
         self.attacks = {}
         self.register_attack('Bullet')
         self.casts = []
         self.exp_percentage = 0
+        self.surface = pg.Surface((self.w, self.w))
+        self.create_surface()
 
     def add_exp(self, value):
         self.stats['exp'] += value
@@ -93,7 +96,9 @@ class Player:
                     self.calculate_angle()
                     base_velocity = pg.Vector2(cos(radians(self.rotation)), sin(radians(self.rotation)))
                 velocity = pg.Vector2(base_velocity.x * attack['speed'], base_velocity.y * attack['speed'])
-                self.casts.append(ALL_ATTACKS[attack_type](self.pos.x, self.pos.y, velocity, **attack['inits']))
+                self.casts.append(ALL_ATTACKS[attack['class']](self.pos.x, self.pos.y, velocity,
+                                  notification=self.dmg_notification[attack_type],
+                                                               dmg_mod=self.stats['m-dmg'], **attack['inits']))
                 attack['timer'] = 0
             else:
                 attack['timer'] += 1
@@ -121,12 +126,17 @@ class Player:
     def register_attack(self, attack):
         self.attacks[attack] = json.load(open("attack_stats.json", 'r'))[attack]
         self.attacks[attack]['timer'] = 0
+        self.dmg_notification[attack] = centred_text(str(self.attacks[attack]['dmg']), config.FONTS['dmg notification'],
+                                                        (0, 0), (255, 255, 255), return_offset=True)
+
+    def create_surface(self):
+        rect = pg.Rect(0, 0, self.w, self.w)
+        pg.draw.rect(self.surface, self.color, rect)
+        pg.draw.rect(self.surface, (255, 255, 255), rect, width=1)
 
     def draw(self, win, camera):
         x, y = camera.player_pos(self.pos.x, self.pos.y)
-        rect = pg.Rect(x-self.hw//2, y-self.hw, self.w, self.w)
-        pg.draw.rect(win, self.color, rect)
-        pg.draw.rect(win, (255, 255, 255), rect, width=1)
+        win.blit(self.surface, (x - self.hw, y - self.hw))
         for attack in self.casts:
             attack.draw(win, camera)
 

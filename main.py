@@ -30,7 +30,7 @@ class Controller:
                 self.screen.check_event(event)
 
     def main_loop(self):
-        self.screen = SCREENS['game']
+        self.screen = SCREENS['main menu']
         while self.game_running:
             self.clock.tick(self.frame_rate)
             self.get_events()
@@ -50,5 +50,6 @@ if __name__ == '__main__':
     SCREEN_SIZE = (display_info.current_w, display_info.current_h)
     pg.display.set_mode(config.SCALED_SIZE)
     controller = Controller()
-    SCREENS = {'game': GameScreen(), 'pause': PauseScreen(), 'upgrade': UpgradeScreen()}
+    SCREENS = {'game': GameScreen(), 'pause': PauseScreen(), 'upgrade': UpgradeScreen(),
+               'main menu': MenuScreen()}
     controller.main_loop()

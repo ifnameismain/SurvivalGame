@@ -1,5 +1,6 @@
 import random
 from math import atan2, degrees, pi, sin, cos
+import config
 import pygame as pg
 
 
@@ -12,21 +13,54 @@ class BaseEnemy:
         self.rotation = 0
         self.previous_pos = pg.Vector2(x, y)
         self.vel = pg.Vector2(x, y)
-        self.speed = speed
-        self.stats = {"max hp": hp, "hp": hp, "dmg": dmg, "hp percentage": 1}
+        self.stats = {"max hp": hp, "hp": hp, "dmg": dmg, "hp percentage": 1, "base speed": speed, "speed": speed}
+        self.status = config.BASE_STATUS.copy()
         self.timer = 0
         self.max_time = 15
         self.dmg = dmg
+        self.status_tick_timers = config.BASE_STATUS.copy()
+        self.status_tick_rate = config.FRAME_RATE//2
         self.type = "base"
         self.exp = 15
+        self.drawn_quadrants = 4
+        self.surface = pg.Surface((2 * self.radius, 2 * self.radius))
+        self.surface.set_colorkey((0, 0, 0))
+        self.create_surface()
 
-    def calculate_dmg(self, dmg):
-        self.stats['hp'] -= dmg
+    def add_dmg(self, dmg: dict):
+        for key, val in dmg.items():
+            self.status[key] += val
+
+    def inflict_status(self, key, val):
+        if key == "slow":
+            self.stats['speed'] = self.stats['base speed'] - 0.03 * val
+        else:
+            self.stats['hp'] -= val * 3
+
+    def calculate_health(self):
         if self.stats['hp'] < 0:
             self.stats['hp'] = 0
             self.stats['hp percentage'] = 0
         else:
             self.stats['hp percentage'] = self.stats['hp']/self.stats['max hp']
+        return int(self.stats['hp percentage']/0.25)
+
+    def calculate_status(self):
+        prev_hp = self.stats['hp']
+        for key, val in self.status.items():
+            if val != 0:
+                if key == "normal":
+                    self.stats['hp'] -= val
+                    self.status[key] = 0
+                elif self.status_tick_timers[key] == self.status_tick_rate:
+                    self.status_tick_timers[key] = 0
+                    self.inflict_status(key, val)
+                    self.status[key] -= 1
+                else:
+                    self.status_tick_timers[key] += 1
+        if prev_hp != self.stats['hp']:
+            if self.calculate_health() != self.drawn_quadrants:
+                self.create_surface()
 
     def converge(self, other):
         if other.radius > self.radius:
@@ -34,9 +68,10 @@ class BaseEnemy:
         else:
             self.radius += other.radius / 3
         self.stats['hp'] += other.stats['hp']
-        self.stats['max hp'] += other.max_hp
+        self.stats['max hp'] += other.stats['max hp']
         self.stats['hp percentage'] = self.stats['hp'] / self.stats['max hp']
         self.exp += other.exp
+        self.create_surface(new_radius=True)
 
     def update(self, player_pos):
         rise = player_pos.y - self.pos.y
@@ -47,27 +82,43 @@ class BaseEnemy:
             m = 1000
         self.previous_pos.update(self.pos.x, self.pos.y)
         if self.pos.x > player_pos.x:
-            self.pos.x -= self.speed / (m + 1)
+            self.pos.x -= self.stats['speed'] / (m + 1)
         else:
-            self.pos.x += self.speed / (m + 1)
+            self.pos.x += self.stats['speed'] / (m + 1)
         if self.pos.y > player_pos.y:
-            self.pos.y -= self.speed * m / (m + 1)
+            self.pos.y -= self.stats['speed'] * m / (m + 1)
         else:
-            self.pos.y += self.speed * m / (m + 1)
+            self.pos.y += self.stats['speed'] * m / (m + 1)
         self.rect.update(self.pos.x - self.radius, self.pos.y - self.radius, self.radius*2, self.radius*2)
+        self.calculate_status()
+
+    def create_surface(self, new_radius=False):
+        if new_radius:
+            self.surface = pg.Surface((2 * self.radius, 2 * self.radius))
+            self.surface.set_colorkey((0, 0, 0))
+
+        self.surface.fill((0, 0, 0))
+        if self.stats['hp percentage'] == 1:
+            pg.draw.circle(self.surface, self.color, (self.radius, self.radius), self.radius)
+            self.drawn_quadrants = 4
+        elif self.stats['hp percentage'] > 0.75:
+            pg.draw.circle(self.surface, self.color, (self.radius, self.radius), self.radius, draw_top_left=True,
+                           draw_bottom_right=True, draw_bottom_left=True)
+            self.drawn_quadrants = 3
+        elif self.stats['hp percentage'] > 0.5:
+            pg.draw.circle(self.surface, self.color, (self.radius, self.radius), self.radius, draw_top_left=True,
+                           draw_bottom_left=True)
+            self.drawn_quadrants = 2
+        elif self.stats['hp percentage'] > 0.25:
+            pg.draw.circle(self.surface, self.color, (self.radius, self.radius), self.radius, draw_top_left=True)
+            self.drawn_quadrants = 1
+        else:
+            self.drawn_quadrants = 0
+        pg.draw.circle(self.surface, (255, 255, 255), (self.radius, self.radius), self.radius, width=1)
 
     def draw(self, win, camera):
         x, y = camera.object_pos(self.pos.x, self.pos.y)
-        if self.stats['hp percentage'] == 1:
-            pg.draw.circle(win, self.color, (x, y), self.radius)
-        elif self.stats['hp percentage'] > 0.75:
-            pg.draw.circle(win, self.color, (x, y), self.radius, draw_top_left=True,
-                           draw_bottom_right=True, draw_bottom_left=True)
-        elif self.stats['hp percentage'] > 0.5:
-            pg.draw.circle(win, self.color, (x, y), self.radius, draw_top_left=True, draw_bottom_left=True)
-        else:
-            pg.draw.circle(win, self.color, (x, y), self.radius, draw_top_left=True)
-        pg.draw.circle(win, (255, 255, 255), (x, y), self.radius, width=1)
+        win.blit(self.surface, (x - self.radius, y - self.radius))
 
 
 class Dasher(BaseEnemy):
