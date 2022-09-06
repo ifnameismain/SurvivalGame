@@ -11,6 +11,10 @@ class Controller:
         self.frame_rate = config.FRAME_RATE
         self.screen = None
 
+    def blit_fps(self):
+        self.window.blit(*centred_text(str(int(self.clock.get_fps())),
+                                       config.FONTS['dmg notification'], (20, 20), (255, 255, 255)))
+
     def switch_state(self, state):
         if state == 'game':
             pg.mouse.set_visible(False)
@@ -38,6 +42,7 @@ class Controller:
             if state is not None:
                 self.switch_state(state)
             self.screen.draw(self.window)
+            self.blit_fps()
             self.display.blit(pg.transform.scale(self.window, config.SCALED_SIZE), (0, 0))
             pg.display.update()
         pg.quit()

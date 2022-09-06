@@ -55,6 +55,8 @@ class GameScreen:
         self.player.update()
         for e in self.enemies.copy():
             e.update(self.player.pos)
+            if e.rect.colliderect(self.player.rect):
+                self.player.stats['hp'] -= 1
             if e.stats['hp'] == 0:
                 self.exp_points.append(ExpPoint(e.pos.x, e.pos.y, e.exp))
                 self.enemies.remove(e)
@@ -91,6 +93,8 @@ class GameScreen:
                         self.wave, self.wave_timer, [])
         self.crosshair.update()
         self.map.update_background(self.player.pos)
+        if self.player.stats['hp'] <= 0:
+            self.next_state = "main menu"
         return self.next_state
 
     def draw(self, surface):
