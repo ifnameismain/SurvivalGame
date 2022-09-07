@@ -17,13 +17,15 @@ class Wave:
         self.spawn_rate += 0.001
 
     def converge(self):
-        for e in self.enemies.copy():
+        for e in self.enemies:
             for ee in self.enemies.copy():
                 if e.type == ee.type:
                     if e != ee:
                         if e.pos.distance_to(ee.pos) < e.radius:
                             e.converge(ee)
+                            print("converge")
                             self.enemies.remove(ee)
+                            break
 
     def spawn(self):
         if random.uniform(0, 1) < self.spawn_rate:

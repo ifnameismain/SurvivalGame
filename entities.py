@@ -13,9 +13,9 @@ class Player:
         self.color = (33, 217, 239)
         self.border = (255, 255, 255)
         self.rotation = 0
-        self.previous_pos = pg.Vector2(x, y)
         self.vel = pg.Vector2(x, y)
-        self.stats = {"hp": 100, "max hp": 100, "speed": 2, "attack speed": 1, "m-dmg": 1, "lvl": 1, "exp": 0}
+        self.stats = {"hp": 100, "max hp": 100, "speed": 2, "attack speed": 1, "flat dmg": 0,
+                      "% damage": 1, "flat status stacks": 0, "% status stack": 1, "lvl": 1, "exp": 0}
         self.internals = {"dash cd": 1.5, "dash": 0.2, "dash timer": 0, "dash cd timer": 0}
         self.controls = {'left': pg.K_a, 'right': pg.K_d, 'up': pg.K_w, 'down': pg.K_s,
                          'dash': pg.K_SPACE}
@@ -27,6 +27,27 @@ class Player:
         self.exp_percentage = 0
         self.surface = pg.Surface((self.w, self.w))
         self.create_surface()
+
+    def modify_stats(self, stat):
+        s = config.UPGRADES['player'][stat]['stat']
+        self.stats[s] += config.UPGRADES['player'][stat]['amount']
+        if s == "max hp":
+            self.stats["hp"] += config.UPGRADES['player'][stat]['amount']
+        elif s == "speed":
+            pass
+        else:
+            self.update_attacks()
+
+    def modify_attacks(self, stat):
+        pass
+
+    def register_upgrade(self, upgrade):
+        if upgrade in config.UPGRADES['attacks'].keys():
+            self.register_attack(upgrade)
+        elif upgrade in config.UPGRADES['player'].keys():
+            self.modify_stats(upgrade)
+        else:
+            self.modify_attacks(upgrade)
 
     def add_exp(self, value):
         self.stats['exp'] += value
@@ -45,9 +66,6 @@ class Player:
 
     def handle_key_press(self, key, down):
         self.move_state[key] = down
-
-    def revert_move(self):
-        self.pos.update(self.previous_pos.x, self.previous_pos.y)
 
     def move(self):
         self.vel.x = 0
@@ -81,9 +99,6 @@ class Player:
         if self.vel.x != 0 and self.vel.y != 0:
             self.vel.x /= sqrt(2)
             self.vel.y /= sqrt(2)
-
-        # Move x, y values by velocities
-        self.previous_pos.update(self.pos.x, self.pos.y)
 
         self.pos.x += self.vel.x
         self.pos.y += self.vel.y
@@ -126,24 +141,30 @@ class Player:
     def update_attacks(self, key=None):
         if key is None:
             for attack in self.attacks.keys():
-                self.attacks[attack]['dmg dict'] = {"normal": self.attacks[attack]['dmg']}
-                if 'status' in self.attacks[attack].attacks():
-                    self.attacks[attack]['dmg dict'][self.attacks[attack]["status"]] = 1
-                    self.attacks[attack]['dmg dict'][self.attacks[attack]["status"] + " chance"] = self.attacks[attack]["chance"]
+                self.attacks[attack]['dmg dict'] = {"normal": (self.attacks[attack]['dmg'] +
+                                                               self.stats['flat dmg']) * self.stats['% damage']}
+                if 'status' in self.attacks[attack].keys():
+                    print(self.attacks)
+                    self.attacks[attack]['dmg dict'][self.attacks[attack]["status"]] = (1 + self.stats['flat status stacks']) *\
+                                                                                       self.stats['% status stack']
+                    self.attacks[attack]['dmg dict'][self.attacks[attack]["status"] +
+                                                     " chance"] = self.attacks[attack]["chance"]
                 self.dmg_notification[attack] = centred_text(str(self.attacks[attack]['dmg']),
                                                              config.FONTS['dmg notification'],
                                                              (0, 0), (255, 255, 255), return_offset=True)
 
         else:
-            self.attacks[key]['dmg dict'] = {"normal": self.attacks[key]['dmg']}
+            self.attacks[key]['dmg dict'] = {"normal": (self.attacks[key]['dmg'] +
+                                                               self.stats['flat dmg']) * self.stats['% damage']}
             if 'status' in self.attacks[key].keys():
-                self.attacks[key]['dmg dict'][self.attacks[key]["status"]] = 1
+                self.attacks[key]['dmg dict'][self.attacks[key]["status"]] = (1 + self.stats['flat status stacks']) *\
+                                                                                       self.stats['% status stack']
                 self.attacks[key]['dmg dict'][self.attacks[key]["status"] + " chance"] = self.attacks[key]["chance"]
             self.dmg_notification[key] = centred_text(str(self.attacks[key]['dmg']), config.FONTS['dmg notification'],
                                                          (0, 0), (255, 255, 255), return_offset=True)
 
     def register_attack(self, attack):
-        self.attacks[attack] = BASE_ATTACKS[attack]
+        self.attacks[attack] = config.UPGRADES['attacks'][attack]
         self.attacks[attack]['timer'] = 0
         self.update_attacks(attack)
 

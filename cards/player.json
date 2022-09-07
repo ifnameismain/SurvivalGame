@@ -6,16 +6,16 @@
     "description": "Flat increase to your maximum hp"
   },
   "Damage Up": {
-    "stat": "p-dmg",
+    "stat": "flat dmg",
     "type": "flat",
     "amount": 1,
     "description": "Flat increase to normal damage"
   },
   "Status Up": {
-    "stat": "s-dmg",
+    "stat": "flat status stacks",
     "type": "flat",
     "amount": 0.5,
-    "description": "Flat increase to status effects"
+    "description": "Flat increase to status stacks"
   },
   "Health Boost": {
     "stat": "max hp",
@@ -24,21 +24,21 @@
     "description": "Scalar increase to your maximum hp"
   },
   "Damage Boost": {
-    "stat": "p-dmg",
+    "stat": "% damage",
     "type": "percent",
     "amount": 0.02,
     "description": "Scalar increase to your physical damage"
   },
   "Status Boost": {
-    "stat": "s-dmg",
+    "stat": "% status stack",
     "type": "percent",
     "amount": 0.02,
-    "description": "Scalar increase to your status effects"
+    "description": "Scalar increase to your status stacks"
   },
   "Movement Speed":{
     "stat": "speed",
     "type": "percent",
-    "amount": 0.03,
+    "amount": 0.05,
     "description": "Scalar increase to your speed"
   }
 }

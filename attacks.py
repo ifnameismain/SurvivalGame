@@ -9,9 +9,9 @@ class Bullet:
         self.color = color
         self.size = size
         self.hsize = size//2
-        self.rect = pg.Rect(x-size, y-size, 2*size, 2*size)
+        self.rect = pg.Rect(x-size, y-size, 2 * size, 2 * size)
         self.dmg = dmg
-        self.surface = pg.Surface(( 2*size, 2*size))
+        self.surface = pg.Surface((2 * size, 2 * size))
         self.surface.set_colorkey((0, 0, 0))
         self.create_surface()
         self.dmg_notification = notification
@@ -38,4 +38,3 @@ class Electricity:
 
 
 ALL_ATTACKS = {'Bullet': Bullet, "Electricity": Electricity}
-BASE_ATTACKS = json.load(open("attack_stats.json", 'r'))

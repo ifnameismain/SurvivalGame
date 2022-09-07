@@ -20,5 +20,9 @@ BACKGROUND = (120, 120, 120)
 ALT_BACKGROUND = (100, 100, 100)
 TILE_SIZE = 64
 WAVE_TIME = 90
+
 BASE_STATUS = json.load(open("status.json", 'r'))
+UPGRADES = {"attacks": json.load(open("cards/attacks.json", 'r')),
+            "player": json.load(open("cards/player.json", 'r'))}
+           # "upgrades": json.load(open("cards/upgrades.json", 'r'))}
 pg.mouse.set_visible(False)

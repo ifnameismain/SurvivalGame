@@ -19,7 +19,9 @@ class GameScreen:
         self.map.update_background(self.player.pos)
         self.notifications = []
 
-    def reset(self):
+    def pre_switch(self, upgrade):
+        if upgrade is not None:
+            self.player.register_upgrade(upgrade)
         self.next_state = None
         self.player.move_state = {control: False for control in self.player.controls.values()}
 
@@ -105,7 +107,7 @@ class PauseScreen:
                                                        (config.UNSCALED_SIZE[0] // 2, config.UNSCALED_SIZE[1] // 2),
                                                        (255, 248, 220))
 
-    def reset(self):
+    def pre_switch(self, other):
         self.next_state = None
 
     def check_event(self, event):
@@ -134,14 +136,13 @@ class UpgradeScreen:
         self.upgrade_text, self.upgrade_pos = centred_text("Choose Upgrade...", config.FONTS['upgrade'],
                                                            (config.UNSCALED_SIZE[0]//2, 50), (255, 248, 220))
 
-    def reset(self):
+    def pre_switch(self, other):
         self.next_state = None
         self.get_upgrade_cards()
 
     def get_upgrade_cards(self):
         # do something here. probably random
-        self.upgrade_cards = [UpgradeCard((x * config.UNSCALED_SIZE[0]//6) - UpgradeCard.width // 2, 100,
-                                          "upgrades/attacks.json") for x in [2, 3, 4]]
+        self.upgrade_cards = [UpgradeCard((x * config.UNSCALED_SIZE[0]//6) - UpgradeCard.width // 2, 100) for x in [2, 3, 4]]
 
     def check_event(self, event):
         if event.type == pg.MOUSEBUTTONDOWN:
@@ -149,7 +150,7 @@ class UpgradeScreen:
                 x, y = get_mouse()
                 for card in self.upgrade_cards:
                     if card.x < x < card.x + card.width and card.y < y < card.y + card.height:
-                        self.next_state = "game"
+                        self.next_state = ["game", card.info_key]
 
     def update(self):
         for event in pg.event.get():
@@ -166,21 +167,21 @@ class UpgradeScreen:
 class MenuScreen:
     def __init__(self):
         self.next_state = None
-        self.game = GameScreen()
+        self.game = SimGame()
         self.title_card = create_card(600, 150, 15)
         self.title_text, self.title_pos = centred_text("Survival", config.FONTS['title'],
                                                        (config.UNSCALED_SIZE[0]//2, 200), (255, 248, 220))
         self.space_text, self.space_pos = centred_text("Press Space to Start", config.FONTS['upgrade'],
                                                        (config.UNSCALED_SIZE[0] // 2, 400), (255, 248, 220))
 
-    def reset(self):
+    def pre_switch(self, other):
         self.next_state = None
-        self.game = GameScreen()
+        self.game = SimGame()
 
     def check_event(self, event):
         if event.type == pg.KEYDOWN:
             if event.key == pg.K_SPACE:
-                self.next_state = 'game'
+                self.next_state = ['game', True]
         elif event.type == pg.KEYUP:
             pass
 
@@ -195,3 +196,96 @@ class MenuScreen:
         surface.blit(self.title_card, (config.UNSCALED_SIZE[0]//2-300, 125))
         surface.blit(self.title_text, self.title_pos)
         surface.blit(self.space_text, self.space_pos)
+
+
+class SimGame:
+    def __init__(self):
+        self.player = Player(0, 0)
+        self.map = Map()
+        self.hud = HUD()
+        self.next_state = None
+        self.wave = Wave()
+        self.exp_points = []
+        self.crosshair = Crosshair()
+        self.camera = PlayerCamera()
+        self.map.update_background(self.player.pos)
+        self.notifications = []
+
+    def pre_switch(self, upgrade):
+        if upgrade is not None:
+            self.player.register_upgrade(upgrade)
+        self.next_state = None
+        self.player.move_state = {control: False for control in self.player.controls.values()}
+
+    def check_event(self, event):
+        if event.type == pg.KEYDOWN:
+            if event.key == pg.K_ESCAPE:
+                self.next_state = 'pause'
+            elif event.key in self.player.controls.values():
+                self.player.handle_key_press(event.key, True)
+        elif event.type == pg.KEYUP:
+            if event.key in self.player.controls.values():
+                self.player.handle_key_press(event.key, False)
+
+    def update(self):
+        for event in pg.event.get():
+            self.check_event(event)
+        self.player.update()
+        self.wave.update(self.player.pos)
+        for e in self.wave.enemies.copy():
+            e.update(self.player.pos)
+            if e.stats['hp'] == 0:
+                self.exp_points.append(ExpPoint(e.pos.x, e.pos.y, e.exp))
+                self.wave.enemies.remove(e)
+                continue
+        self.wave.converge()
+        self.player.stats['hp'] -= len(self.player.rect.collidelistall([e.rect for e in self.wave.enemies]))
+        for bullet in self.player.casts.copy():
+            if abs(bullet.pos.x - self.player.pos.x) > config.UNSCALED_SIZE[0] // 2 or \
+                    abs(bullet.pos.y - self.player.pos.y) > config.UNSCALED_SIZE[1] // 2:
+                self.player.casts.remove(bullet)
+                continue
+            for e in self.wave.enemies.copy():
+                if bullet.rect.colliderect(e.rect):
+                    e.add_dmg(bullet.dmg)
+                    self.notifications.append([30, bullet.get_notification()])
+                    self.player.casts.remove(bullet)
+                    break
+        for exp in self.exp_points.copy():
+            if abs(self.player.pos.x - exp.pos.x) < config.UNSCALED_SIZE[0] // 2 and \
+                    abs(self.player.pos.y - exp.pos.y) < config.UNSCALED_SIZE[1] // 2:
+                exp.drawable = True
+                if exp.rect.colliderect(self.player.rect):
+                    if self.player.add_exp(exp.value):
+                        self.next_state = 'upgrade'
+                    self.exp_points.remove(exp)
+                    continue
+            else:
+                exp.drawable = False
+        self.hud.update(self.player.stats['hp'] / self.player.stats['max hp'],
+                        self.player.exp_percentage, self.player.get_dash_status(),
+                        self.wave.num, self.wave.wave_time, [])
+        self.crosshair.update()
+        self.map.update_background(self.player.pos)
+        if self.player.stats['hp'] <= 0:
+            self.next_state = "main menu"
+        return self.next_state
+
+    def draw(self, surface):
+        self.map.draw(surface)
+        self.camera.update_player(self.player.pos.x, self.player.pos.y)
+        self.camera.update_camera()
+        for exp in self.exp_points:
+            if exp.drawable:
+                exp.draw(surface, self.camera)
+        for e in self.wave.enemies:
+            e.draw(surface, self.camera)
+        self.player.draw(surface, self.camera)
+        self.hud.draw(surface)
+        self.crosshair.draw(surface)
+        for notification in self.notifications.copy():
+            if notification[0] == 0:
+                self.notifications.remove(notification)
+            else:
+                surface.blit(notification[1][0], self.camera.object_pos(*notification[1][1]))
+                notification[0] -= 1

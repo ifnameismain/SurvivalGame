@@ -15,14 +15,16 @@ class Controller:
         self.window.blit(*centred_text(str(int(self.clock.get_fps())),
                                        config.FONTS['dmg notification'], (20, 20), (255, 255, 255)))
 
-    def switch_state(self, state):
+    def switch_state(self, state, other=None):
         if state == 'game':
+            if other is True:
+                SCREENS[state] = GameScreen()
             pg.mouse.set_visible(False)
         else:
             SCREENS[state].screen = self.window
             pg.mouse.set_visible(True)
         self.screen = SCREENS[state]
-        self.screen.reset()
+        self.screen.pre_switch(other)
 
     def get_events(self):
         for event in pg.event.get():

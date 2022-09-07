@@ -29,7 +29,8 @@ class BaseEnemy:
 
     def add_dmg(self, dmg: dict):
         for key, val in dmg.items():
-            self.status[key] += val
+            if "chance" not in key:
+                self.status[key] += val
 
     def inflict_status(self, key, val):
         if key == "slow":
@@ -94,7 +95,7 @@ class BaseEnemy:
 
     def create_surface(self, new_radius=False):
         if new_radius:
-            self.surface = pg.Surface((2 * self.radius, 2 * self.radius))
+            self.surface = pg.Surface((2 * self.radius,  2 * self.radius))
             self.surface.set_colorkey((0, 0, 0))
 
         self.surface.fill((0, 0, 0))

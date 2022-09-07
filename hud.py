@@ -83,36 +83,43 @@ class UpgradeCard:
     card = create_card(width, height, 10, color=(150, 150, 150))
     pg.draw.rect(card, config.BACKGROUND, (width//3, 160-(width//2 - width//3), width//3, width//3))
     pg.draw.rect(card, (255, 255, 255), (width//3, 160-(width//2 - width//3), width//3, width//3), 1)
-    attack_stats = BASE_ATTACKS
 
-    def __init__(self, x, y, json_path):
+    def __init__(self, x, y):
         self.x, self.y = x, y
-        self.info = json.load(open(json_path, 'r'))
+        self.type = random.choice([key for key in config.UPGRADES.keys()])
         self.corner_radius = 6
-        self.info_key = random.choice([key for key in self.info.keys()])
-        self.info = self.info[self.info_key]
-        self.stats = self.attack_stats[self.info_key]
+        self.info_key = random.choice([key for key in config.UPGRADES[self.type].keys()])
+        self.info = config.UPGRADES[self.type][self.info_key]
         self.name, self.name_pos = centred_text(self.info_key, config.FONTS['name'], (self.x + self.width//2, self.y + 50),
                                                 (255, 248, 220))
         self.typ, self.typ_pos = centred_text(self.info['type'], config.FONTS['type'],
                                               (self.x + self.width // 2, self.y + 90),
                                               (205, 92, 92))
-        self.dmg, self.dmg_pos = centred_text(f"{self.stats['dmg']} / {self.stats['cd']}s", config.FONTS['name'],
-                                              (self.x + self.width // 2, self.y + 260),
-                                              (205, 92, 92))
-        if "status" in self.stats:
-            self.status, self.status_pos = centred_text(f"+ {self.stats['status']}", config.FONTS['type'],
-                                              (self.x + self.width // 2, self.y + 290),
-                                              self.stats['inits']['color'])
+        if self.type == "attacks":
+            self.dmg, self.dmg_pos = centred_text(f"{self.info['dmg']} / {self.info['cd']}s", config.FONTS['name'],
+                                                  (self.x + self.width // 2, self.y + 260),
+                                                  (205, 92, 92))
+            if "status" in self.info:
+                self.status, self.status_pos = centred_text(f"+ {self.info['status']}", config.FONTS['type'],
+                                                  (self.x + self.width // 2, self.y + 290),
+                                                  self.info['inits']['color'])
+        elif self.type == "player":
+            self.dmg, self.dmg_pos = centred_text(f"+ {self.info['amount']}", config.FONTS['name'],
+                                                  (self.x + self.width // 2, self.y + 260),
+                                                  (205, 92, 92))
+        else:
+            pass
+
 
     def draw(self, win):
         win.blit(self.card, (self.x, self.y))
         win.blit(self.name, self.name_pos)
         win.blit(self.typ, self.typ_pos)
-        pg.draw.circle(win, self.stats['inits']['color'], (self.x + self.width//2, self.y + 160),
-                       self.stats['inits']['size'])
+        if self.type == "attacks":
+            pg.draw.circle(win, self.info['inits']['color'], (self.x + self.width//2, self.y + 160),
+                           self.info['inits']['size'])
         win.blit(self.dmg, self.dmg_pos)
-        if "status" in self.stats:
+        if "status" in self.info:
             win.blit(self.status, self.status_pos)
 
 
