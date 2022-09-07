@@ -19,5 +19,6 @@ PLAYER_WIDTH = 18
 BACKGROUND = (120, 120, 120)
 ALT_BACKGROUND = (100, 100, 100)
 TILE_SIZE = 64
+WAVE_TIME = 90
 BASE_STATUS = json.load(open("status.json", 'r'))
 pg.mouse.set_visible(False)

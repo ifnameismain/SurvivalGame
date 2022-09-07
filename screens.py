@@ -1,11 +1,9 @@
-import config
-import random
-from pg_funcs import *
 from hud import *
 from entities import *
 from map import Map
 from camera import *
 from enemy import *
+from wave import Wave
 
 
 class GameScreen:
@@ -14,15 +12,9 @@ class GameScreen:
         self.map = Map()
         self.hud = HUD()
         self.next_state = None
-        self.wave = 1
-        self.spawn_rate = 0.001 * self.wave + 0.01
-        self.wave_timer = 60
-        self.enemies = []
+        self.wave = Wave()
         self.exp_points = []
         self.crosshair = Crosshair()
-        self.flames = []
-        self.offset = 0
-        self.timer = 0
         self.camera = PlayerCamera()
         self.map.update_background(self.player.pos)
         self.notifications = []
@@ -30,13 +22,6 @@ class GameScreen:
     def reset(self):
         self.next_state = None
         self.player.move_state = {control: False for control in self.player.controls.values()}
-
-    def spawn(self):
-        if random.uniform(0, 1) < self.spawn_rate:
-            self.enemies.append(BaseEnemy(self.player.pos.x + random.randint(0, config.UNSCALED_SIZE[0]),
-                                          self.player.pos.y + random.choice([-config.UNSCALED_SIZE[1]//2 - 10,
-                                                                             config.UNSCALED_SIZE[1]//2 + 10]),
-                                          10, 50, 10, 1, (210, 105, 30)))
 
     def check_event(self, event):
         if event.type == pg.KEYDOWN:
@@ -51,27 +36,22 @@ class GameScreen:
     def update(self):
         for event in pg.event.get():
             self.check_event(event)
-        self.spawn()
         self.player.update()
-        for e in self.enemies.copy():
+        self.wave.update(self.player.pos)
+        for e in self.wave.enemies.copy():
             e.update(self.player.pos)
-            if e.rect.colliderect(self.player.rect):
-                self.player.stats['hp'] -= 1
             if e.stats['hp'] == 0:
                 self.exp_points.append(ExpPoint(e.pos.x, e.pos.y, e.exp))
-                self.enemies.remove(e)
+                self.wave.enemies.remove(e)
                 continue
-            for ee in self.enemies.copy():
-                if e != ee and e.type == ee.type:
-                    if e.pos.distance_to(ee.pos) < e.radius:
-                        e.converge(ee)
-                        self.enemies.remove(ee)
+        self.wave.converge()
+        self.player.stats['hp'] -= len(self.player.rect.collidelistall([e.rect for e in self.wave.enemies]))
         for bullet in self.player.casts.copy():
             if abs(bullet.pos.x - self.player.pos.x) > config.UNSCALED_SIZE[0] // 2 or \
                     abs(bullet.pos.y - self.player.pos.y) > config.UNSCALED_SIZE[1] // 2:
                 self.player.casts.remove(bullet)
                 continue
-            for e in self.enemies.copy():
+            for e in self.wave.enemies.copy():
                 if bullet.rect.colliderect(e.rect):
                     e.add_dmg(bullet.dmg)
                     self.notifications.append([30, bullet.get_notification()])
@@ -90,7 +70,7 @@ class GameScreen:
                 exp.drawable = False
         self.hud.update(self.player.stats['hp'] / self.player.stats['max hp'],
                         self.player.exp_percentage, self.player.get_dash_status(),
-                        self.wave, self.wave_timer, [])
+                        self.wave.num, self.wave.wave_time, [])
         self.crosshair.update()
         self.map.update_background(self.player.pos)
         if self.player.stats['hp'] <= 0:
@@ -104,7 +84,7 @@ class GameScreen:
         for exp in self.exp_points:
             if exp.drawable:
                 exp.draw(surface, self.camera)
-        for e in self.enemies:
+        for e in self.wave.enemies:
             e.draw(surface, self.camera)
         self.player.draw(surface, self.camera)
         self.hud.draw(surface)

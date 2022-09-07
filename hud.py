@@ -1,7 +1,5 @@
 import random
-
 import config
-import json
 from pg_funcs import *
 from attacks import *
 
@@ -81,11 +79,11 @@ class StatusCircle:
 
 
 class UpgradeCard:
-    card_width, card_height = 180, 320
-    card = create_card(card_width, card_height, 10)
-    pg.draw.rect(card, config.BACKGROUND, (card_width//3, 160-(card_width//2 - card_width//3), card_width//3, card_width//3))
-    pg.draw.rect(card, (255, 255, 255), (card_width//3, 160-(card_width//2 - card_width//3), card_width//3, card_width//3), 1)
-    attack_stats = json.load(open("attack_stats.json", 'r'))
+    width, height = 180, 320
+    card = create_card(width, height, 10)
+    pg.draw.rect(card, config.BACKGROUND, (width//3, 160-(width//2 - width//3), width//3, width//3))
+    pg.draw.rect(card, (255, 255, 255), (width//3, 160-(width//2 - width//3), width//3, width//3), 1)
+    attack_stats = BASE_ATTACKS
 
     def __init__(self, x, y, json_path):
         self.x, self.y = x, y
@@ -93,20 +91,20 @@ class UpgradeCard:
         self.corner_radius = 6
         self.info_key = random.choice([key for key in self.info.keys()])
         self.info = self.info[self.info_key]
-        self.name, self.name_pos = centred_text(self.info_key, config.FONTS['name'], (self.x + self.card_width//2, self.y + 50),
+        self.name, self.name_pos = centred_text(self.info_key, config.FONTS['name'], (self.x + self.width//2, self.y + 50),
                                                 (255, 248, 220))
         self.typ, self.typ_pos = centred_text(self.info['type'], config.FONTS['type'],
-                                              (self.x + self.card_width // 2, self.y + 90),
+                                              (self.x + self.width // 2, self.y + 90),
                                               (205, 92, 92))
         self.dmg, self.dmg_pos = centred_text(f"{self.info['dmg']} / {self.info['cd']}s", config.FONTS['name'],
-                                              (self.x + self.card_width // 2, self.y + 260),
+                                              (self.x + self.width // 2, self.y + 260),
                                               (205, 92, 92))
 
     def draw(self, win):
         win.blit(self.card, (self.x, self.y))
         win.blit(self.name, self.name_pos)
         win.blit(self.typ, self.typ_pos)
-        pg.draw.circle(win, self.attack_stats[self.info_key]['inits']['color'], (self.x + self.card_width//2, self.y + 160), 4)
+        pg.draw.circle(win, self.attack_stats[self.info_key]['inits']['color'], (self.x + self.width//2, self.y + 160), 4)
         win.blit(self.dmg, self.dmg_pos)
 
 

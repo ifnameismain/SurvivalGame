@@ -98,7 +98,7 @@ class Player:
                 velocity = pg.Vector2(base_velocity.x * attack['speed'], base_velocity.y * attack['speed'])
                 self.casts.append(ALL_ATTACKS[attack['class']](self.pos.x, self.pos.y, velocity,
                                   notification=self.dmg_notification[attack_type],
-                                                               p_mod=self.stats['m-dmg'], **attack['inits']))
+                                  dmg=attack['dmg dict'], **attack['inits']))
                 attack['timer'] = 0
             else:
                 attack['timer'] += 1
@@ -123,11 +123,28 @@ class Player:
             else:
                 self.rotation = 0
 
+    def update_attacks(self, key=None):
+        if key is None:
+            for attack in self.attacks.keys():
+                self.attacks[attack]['dmg dict'] = {"dmg": self.attacks[attack]['dmg']}
+                if 'status' in self.attacks[attack].attacks():
+                    self.attacks[attack]['dmg dict'][self.attacks[attack]["status"]] = 1
+                    self.attacks[attack]['dmg dict'][self.attacks[attack]["status"] + " chance"] = self.attacks[attack]["chance"]
+                self.dmg_notification[attack] = centred_text(str(self.attacks[attack]['dmg']),
+                                                             config.FONTS['dmg notification'],
+                                                             (0, 0), (255, 255, 255), return_offset=True)
+
+        else:
+            self.attacks[key]['dmg dict'] = {"dmg": self.attacks[key]['dmg']}
+            if 'status' in self.attacks[key].keys():
+                self.attacks[key]['dmg dict'][self.attacks[key]["status"]] = 1
+                self.attacks[key]['dmg dict'][self.attacks[key]["status"] + " chance"] = self.attacks[key]["chance"]
+            self.dmg_notification[key] = centred_text(str(self.attacks[key]['dmg']), config.FONTS['dmg notification'],
+                                                         (0, 0), (255, 255, 255), return_offset=True)
+
     def register_attack(self, attack):
-        self.attacks[attack] = json.load(open("attack_stats.json", 'r'))[attack]
+        self.attacks[attack] = BASE_ATTACKS[attack]
         self.attacks[attack]['timer'] = 0
-        self.dmg_notification[attack] = centred_text(str(self.attacks[attack]['dmg']), config.FONTS['dmg notification'],
-                                                        (0, 0), (255, 255, 255), return_offset=True)
 
     def create_surface(self):
         rect = pg.Rect(0, 0, self.w, self.w)
