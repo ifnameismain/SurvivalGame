@@ -140,7 +140,7 @@ class UpgradeScreen:
 
     def get_upgrade_cards(self):
         # do something here. probably random
-        self.upgrade_cards = [UpgradeCard((x * config.UNSCALED_SIZE[0]//6) - UpgradeCard.card_width // 2, 100,
+        self.upgrade_cards = [UpgradeCard((x * config.UNSCALED_SIZE[0]//6) - UpgradeCard.width // 2, 100,
                                           "upgrades/attacks.json") for x in [2, 3, 4]]
 
     def check_event(self, event):
@@ -148,7 +148,7 @@ class UpgradeScreen:
             if event.button == 1:
                 x, y = get_mouse()
                 for card in self.upgrade_cards:
-                    if card.x < x < card.x + card.card_width and card.y < y < card.y + card.card_height:
+                    if card.x < x < card.x + card.width and card.y < y < card.y + card.height:
                         self.next_state = "game"
 
     def update(self):

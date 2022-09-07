@@ -80,7 +80,7 @@ class StatusCircle:
 
 class UpgradeCard:
     width, height = 180, 320
-    card = create_card(width, height, 10)
+    card = create_card(width, height, 10, color=(150, 150, 150))
     pg.draw.rect(card, config.BACKGROUND, (width//3, 160-(width//2 - width//3), width//3, width//3))
     pg.draw.rect(card, (255, 255, 255), (width//3, 160-(width//2 - width//3), width//3, width//3), 1)
     attack_stats = BASE_ATTACKS
@@ -91,21 +91,29 @@ class UpgradeCard:
         self.corner_radius = 6
         self.info_key = random.choice([key for key in self.info.keys()])
         self.info = self.info[self.info_key]
+        self.stats = self.attack_stats[self.info_key]
         self.name, self.name_pos = centred_text(self.info_key, config.FONTS['name'], (self.x + self.width//2, self.y + 50),
                                                 (255, 248, 220))
         self.typ, self.typ_pos = centred_text(self.info['type'], config.FONTS['type'],
                                               (self.x + self.width // 2, self.y + 90),
                                               (205, 92, 92))
-        self.dmg, self.dmg_pos = centred_text(f"{self.info['dmg']} / {self.info['cd']}s", config.FONTS['name'],
+        self.dmg, self.dmg_pos = centred_text(f"{self.stats['dmg']} / {self.stats['cd']}s", config.FONTS['name'],
                                               (self.x + self.width // 2, self.y + 260),
                                               (205, 92, 92))
+        if "status" in self.stats:
+            self.status, self.status_pos = centred_text(f"+ {self.stats['status']}", config.FONTS['type'],
+                                              (self.x + self.width // 2, self.y + 290),
+                                              self.stats['inits']['color'])
 
     def draw(self, win):
         win.blit(self.card, (self.x, self.y))
         win.blit(self.name, self.name_pos)
         win.blit(self.typ, self.typ_pos)
-        pg.draw.circle(win, self.attack_stats[self.info_key]['inits']['color'], (self.x + self.width//2, self.y + 160), 4)
+        pg.draw.circle(win, self.stats['inits']['color'], (self.x + self.width//2, self.y + 160),
+                       self.stats['inits']['size'])
         win.blit(self.dmg, self.dmg_pos)
+        if "status" in self.stats:
+            win.blit(self.status, self.status_pos)
 
 
 class HUD:

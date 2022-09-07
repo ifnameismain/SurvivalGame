@@ -11,7 +11,7 @@ class Bullet:
         self.hsize = size//2
         self.rect = pg.Rect(x-size, y-size, 2*size, 2*size)
         self.dmg = dmg
-        self.surface = pg.Surface((size, size))
+        self.surface = pg.Surface(( 2*size, 2*size))
         self.surface.set_colorkey((0, 0, 0))
         self.create_surface()
         self.dmg_notification = notification

@@ -40,7 +40,10 @@ class Controller:
             self.get_events()
             state = self.screen.update()
             if state is not None:
-                self.switch_state(state)
+                if isinstance(state, list):
+                    self.switch_state(state[0], state[1])
+                else:
+                    self.switch_state(state)
             self.screen.draw(self.window)
             self.blit_fps()
             self.display.blit(pg.transform.scale(self.window, config.SCALED_SIZE), (0, 0))

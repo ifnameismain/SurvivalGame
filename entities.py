@@ -126,7 +126,7 @@ class Player:
     def update_attacks(self, key=None):
         if key is None:
             for attack in self.attacks.keys():
-                self.attacks[attack]['dmg dict'] = {"dmg": self.attacks[attack]['dmg']}
+                self.attacks[attack]['dmg dict'] = {"normal": self.attacks[attack]['dmg']}
                 if 'status' in self.attacks[attack].attacks():
                     self.attacks[attack]['dmg dict'][self.attacks[attack]["status"]] = 1
                     self.attacks[attack]['dmg dict'][self.attacks[attack]["status"] + " chance"] = self.attacks[attack]["chance"]
@@ -135,7 +135,7 @@ class Player:
                                                              (0, 0), (255, 255, 255), return_offset=True)
 
         else:
-            self.attacks[key]['dmg dict'] = {"dmg": self.attacks[key]['dmg']}
+            self.attacks[key]['dmg dict'] = {"normal": self.attacks[key]['dmg']}
             if 'status' in self.attacks[key].keys():
                 self.attacks[key]['dmg dict'][self.attacks[key]["status"]] = 1
                 self.attacks[key]['dmg dict'][self.attacks[key]["status"] + " chance"] = self.attacks[key]["chance"]
@@ -145,6 +145,7 @@ class Player:
     def register_attack(self, attack):
         self.attacks[attack] = BASE_ATTACKS[attack]
         self.attacks[attack]['timer'] = 0
+        self.update_attacks(attack)
 
     def create_surface(self):
         rect = pg.Rect(0, 0, self.w, self.w)
