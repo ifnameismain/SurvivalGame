@@ -23,7 +23,6 @@ class Wave:
                     if e != ee:
                         if e.pos.distance_to(ee.pos) < e.radius:
                             e.converge(ee)
-                            print("converge")
                             self.enemies.remove(ee)
                             break
 

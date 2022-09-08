@@ -2,7 +2,6 @@ import config
 from math import sqrt, sin, cos, radians, atan, pi
 from pg_funcs import *
 from attacks import *
-import json
 
 
 class Player:
@@ -15,7 +14,7 @@ class Player:
         self.rotation = 0
         self.vel = pg.Vector2(x, y)
         self.stats = {"hp": 100, "max hp": 100, "speed": 2, "attack speed": 1, "flat dmg": 0,
-                      "% damage": 1, "flat status stacks": 0, "% status stack": 1, "lvl": 1, "exp": 0}
+                      "% damage": 1, "flat status": 0, "% status": 1, "lvl": 1, "exp": 0}
         self.internals = {"dash cd": 1.5, "dash": 0.2, "dash timer": 0, "dash cd timer": 0}
         self.controls = {'left': pg.K_a, 'right': pg.K_d, 'up': pg.K_w, 'down': pg.K_s,
                          'dash': pg.K_SPACE}
@@ -145,8 +144,8 @@ class Player:
                                                                self.stats['flat dmg']) * self.stats['% damage']}
                 if 'status' in self.attacks[attack].keys():
                     print(self.attacks)
-                    self.attacks[attack]['dmg dict'][self.attacks[attack]["status"]] = (1 + self.stats['flat status stacks']) *\
-                                                                                       self.stats['% status stack']
+                    self.attacks[attack]['dmg dict'][self.attacks[attack]["status"]] = (1 + self.stats['flat status']) *\
+                                                                                       self.stats['% status']
                     self.attacks[attack]['dmg dict'][self.attacks[attack]["status"] +
                                                      " chance"] = self.attacks[attack]["chance"]
                 self.dmg_notification[attack] = centred_text(str(self.attacks[attack]['dmg']),
@@ -157,8 +156,8 @@ class Player:
             self.attacks[key]['dmg dict'] = {"normal": (self.attacks[key]['dmg'] +
                                                                self.stats['flat dmg']) * self.stats['% damage']}
             if 'status' in self.attacks[key].keys():
-                self.attacks[key]['dmg dict'][self.attacks[key]["status"]] = (1 + self.stats['flat status stacks']) *\
-                                                                                       self.stats['% status stack']
+                self.attacks[key]['dmg dict'][self.attacks[key]["status"]] = (1 + self.stats['flat status']) *\
+                                                                                       self.stats['% status']
                 self.attacks[key]['dmg dict'][self.attacks[key]["status"] + " chance"] = self.attacks[key]["chance"]
             self.dmg_notification[key] = centred_text(str(self.attacks[key]['dmg']), config.FONTS['dmg notification'],
                                                          (0, 0), (255, 255, 255), return_offset=True)

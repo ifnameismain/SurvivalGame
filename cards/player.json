@@ -12,7 +12,7 @@
     "description": "Flat increase to normal damage"
   },
   "Status Up": {
-    "stat": "flat status stacks",
+    "stat": "flat status",
     "type": "flat",
     "amount": 0.5,
     "description": "Flat increase to status stacks"
@@ -30,7 +30,7 @@
     "description": "Scalar increase to your physical damage"
   },
   "Status Boost": {
-    "stat": "% status stack",
+    "stat": "% status",
     "type": "percent",
     "amount": 0.02,
     "description": "Scalar increase to your status stacks"

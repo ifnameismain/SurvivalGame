@@ -89,6 +89,8 @@ class UpgradeCard:
         self.type = random.choice([key for key in config.UPGRADES.keys()])
         self.corner_radius = 6
         self.info_key = random.choice([key for key in config.UPGRADES[self.type].keys()])
+        if self.type == "attacks":
+            self.image, self.image_pos = ALL_ATTACKS[config.UPGRADES[self.type][self.info_key]['class']]().get_image()
         self.info = config.UPGRADES[self.type][self.info_key]
         self.name, self.name_pos = centred_text(self.info_key, config.FONTS['name'], (self.x + self.width//2, self.y + 50),
                                                 (255, 248, 220))
@@ -110,14 +112,11 @@ class UpgradeCard:
         else:
             pass
 
-
     def draw(self, win):
         win.blit(self.card, (self.x, self.y))
         win.blit(self.name, self.name_pos)
         win.blit(self.typ, self.typ_pos)
-        if self.type == "attacks":
-            pg.draw.circle(win, self.info['inits']['color'], (self.x + self.width//2, self.y + 160),
-                           self.info['inits']['size'])
+        win.blit(self.image, self.image_pos)
         win.blit(self.dmg, self.dmg_pos)
         if "status" in self.info:
             win.blit(self.status, self.status_pos)
