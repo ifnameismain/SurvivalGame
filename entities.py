@@ -8,7 +8,7 @@ class Player:
     def __init__(self, x, y):
         self.pos = pg.Vector2(x, y)
         self.w, self.hw = config.PLAYER_WIDTH, config.PLAYER_WIDTH//2
-        self.rect = pg.Rect(self.pos.x-self.hw//2, self.pos.y-self.hw, self.w, self.w)
+        self.rect = pg.Rect(self.pos.x-self.hw, self.pos.y-self.hw, self.w, self.w)
         self.color = (33, 217, 239)
         self.border = (255, 255, 255)
         self.rotation = 0
@@ -94,7 +94,6 @@ class Player:
             self.internals['dash cd timer'] = self.internals['dash cd'] * config.FRAME_RATE
             self.internals['dash timer'] = self.internals['dash'] * config.FRAME_RATE
 
-        # Character is running diagonally (to keep same speed in all directions)
         if self.vel.x != 0 and self.vel.y != 0:
             self.vel.x /= sqrt(2)
             self.vel.y /= sqrt(2)
@@ -122,7 +121,7 @@ class Player:
         self.attack()
         for attack in self.casts:
             attack.update()
-        self.rect = pg.Rect(self.pos.x-self.hw//2, self.pos.y-self.hw, self.w, self.w)
+        self.rect = pg.Rect(self.pos.x-self.hw, self.pos.y-self.hw, self.w, self.w)
 
     def calculate_angle(self):
         mx, my = get_mouse()
@@ -143,24 +142,24 @@ class Player:
                 self.attacks[attack]['dmg dict'] = {"normal": (self.attacks[attack]['dmg'] +
                                                                self.stats['flat dmg']) * self.stats['% damage']}
                 if 'status' in self.attacks[attack].keys():
-                    print(self.attacks)
                     self.attacks[attack]['dmg dict'][self.attacks[attack]["status"]] = (1 + self.stats['flat status']) *\
-                                                                                       self.stats['% status']
+                                                                                        self.stats['% status']
                     self.attacks[attack]['dmg dict'][self.attacks[attack]["status"] +
                                                      " chance"] = self.attacks[attack]["chance"]
-                self.dmg_notification[attack] = centred_text(str(self.attacks[attack]['dmg']),
+                self.dmg_notification[attack] = centred_text(str(int(self.attacks[attack]['dmg dict']['normal'])),
                                                              config.FONTS['dmg notification'],
                                                              (0, 0), (255, 255, 255), return_offset=True)
 
         else:
             self.attacks[key]['dmg dict'] = {"normal": (self.attacks[key]['dmg'] +
-                                                               self.stats['flat dmg']) * self.stats['% damage']}
+                                                        self.stats['flat dmg']) * self.stats['% damage']}
             if 'status' in self.attacks[key].keys():
                 self.attacks[key]['dmg dict'][self.attacks[key]["status"]] = (1 + self.stats['flat status']) *\
                                                                                        self.stats['% status']
                 self.attacks[key]['dmg dict'][self.attacks[key]["status"] + " chance"] = self.attacks[key]["chance"]
-            self.dmg_notification[key] = centred_text(str(self.attacks[key]['dmg']), config.FONTS['dmg notification'],
-                                                         (0, 0), (255, 255, 255), return_offset=True)
+            self.dmg_notification[key] = centred_text(str(int(self.attacks[key]['dmg dict']['normal'])),
+                                                      config.FONTS['dmg notification'], (0, 0), (255, 255, 255),
+                                                      return_offset=True)
 
     def register_attack(self, attack):
         self.attacks[attack] = config.UPGRADES['attacks'][attack]
@@ -190,7 +189,7 @@ class Crosshair:
         self.x, self.y = get_mouse()
 
     def draw(self, win):
-        points_1 = [(x,y) for x, y in zip([self.x + o for o in [0, self.size, 0, -self.size]],
+        points_1 = [(x, y) for x, y in zip([self.x + o for o in [0, self.size, 0, -self.size]],
                                           [self.y + o for o in [-self.size, 0, self.size, 0]])]
         points_2 = [(x, y) for x, y in zip([self.x + o for o in [0, self.gap, 0, -self.gap]],
                                            [self.y + o for o in [-self.gap, 0, self.gap, 0]])]
@@ -210,4 +209,5 @@ class ExpPoint:
         self.rect = pg.Rect(x-4, y-4, 8, 8)
 
     def draw(self, win, camera):
-        win.blit(ExpPoint.point, camera.object_pos(self.pos.x, self.pos.y))
+        win.blit(ExpPoint.point, camera.object_pos(self.pos.x - 4, self.pos.y - 4))
+

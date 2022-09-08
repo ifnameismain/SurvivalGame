@@ -6,7 +6,7 @@
     "cd": 2,
     "inits": {
       "color": [255, 255, 255],
-      "size": 4
+      "radius": 4
     },
     "type": "projectile",
     "description": "Ordinary bullet projectile"
@@ -20,7 +20,7 @@
     "chance": 1,
     "inits": {
       "color": [245, 183, 177],
-      "size": 4
+      "radius": 4
     },
     "type": "projectile",
     "description": "Fire type bullet projectile. Inflicts burn"
@@ -34,7 +34,7 @@
     "chance": 1,
     "inits": {
       "color": [174, 214, 241],
-      "size": 4
+      "radius": 4
     },
     "type": "projectile",
     "description": "Ice type bullet projectile. Inflicts slow"
@@ -48,7 +48,7 @@
     "chance": 1,
     "inits": {
       "color": [171, 235, 198],
-      "size": 4
+      "radius": 4
     },
     "type": "projectile",
     "description": "Ice type bullet projectile. Inflicts poison"
@@ -62,7 +62,7 @@
     "chance": 1,
     "inits": {
       "color": [210, 180, 222],
-      "size": 4
+      "radius": 4
     },
     "type": "projectile",
     "description": "Hollow point bullet projectile. Inflicts bleed"

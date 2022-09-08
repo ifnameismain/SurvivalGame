@@ -89,9 +89,13 @@ class UpgradeCard:
         self.type = random.choice([key for key in config.UPGRADES.keys()])
         self.corner_radius = 6
         self.info_key = random.choice([key for key in config.UPGRADES[self.type].keys()])
-        if self.type == "attacks":
-            self.image, self.image_pos = ALL_ATTACKS[config.UPGRADES[self.type][self.info_key]['class']]().get_image()
         self.info = config.UPGRADES[self.type][self.info_key]
+        if self.type == "attacks":
+            self.image, self.image_pos = ALL_ATTACKS[config.UPGRADES[self.type][self.info_key]['class']](
+                0, 0, pg.Vector2(0, 0), notification=None, dmg=None, **self.info['inits']).get_image()
+            self.image = pg.transform.scale2x(self.image)
+            self.image_pos = (self.x + 2 * self.image_pos[0] + self.width//2, self.y + 160 + 2 * self.image_pos[1])
+
         self.name, self.name_pos = centred_text(self.info_key, config.FONTS['name'], (self.x + self.width//2, self.y + 50),
                                                 (255, 248, 220))
         self.typ, self.typ_pos = centred_text(self.info['type'], config.FONTS['type'],
@@ -99,7 +103,7 @@ class UpgradeCard:
                                               (205, 92, 92))
         if self.type == "attacks":
             self.dmg, self.dmg_pos = centred_text(f"{self.info['dmg']} / {self.info['cd']}s", config.FONTS['name'],
-                                                  (self.x + self.width // 2, self.y + 260),
+                                                  (self.x + self.width // 2, self.y + 250),
                                                   (205, 92, 92))
             if "status" in self.info:
                 self.status, self.status_pos = centred_text(f"+ {self.info['status']}", config.FONTS['type'],
@@ -116,7 +120,8 @@ class UpgradeCard:
         win.blit(self.card, (self.x, self.y))
         win.blit(self.name, self.name_pos)
         win.blit(self.typ, self.typ_pos)
-        win.blit(self.image, self.image_pos)
+        if self.type == "attacks":
+            win.blit(self.image, self.image_pos)
         win.blit(self.dmg, self.dmg_pos)
         if "status" in self.info:
             win.blit(self.status, self.status_pos)
