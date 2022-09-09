@@ -60,20 +60,20 @@ class StatusCircle:
 
     def draw(self, win):
         surf = pg.Surface((2 * self.radius, 2 * self.radius))
-        # outline
-        pg.draw.circle(surf, self.outline, (self.radius, self.radius), self.radius, 1)
         # percentage
         if self.percentage == 1:
-            pg.draw.circle(surf, self.color, (self.radius, self.radius), self.radius-1)
+            pg.draw.circle(surf, self.color, (self.radius, self.radius), self.radius)
         elif self.percentage > 0.75:
-            pg.draw.circle(surf, self.color, (self.radius, self.radius), self.radius-1,
+            pg.draw.circle(surf, self.color, (self.radius, self.radius), self.radius,
                            draw_top_right=True, draw_bottom_right=True, draw_bottom_left=True)
         elif self.percentage > 0.5:
-            pg.draw.circle(surf, self.color, (self.radius, self.radius), self.radius-1,
+            pg.draw.circle(surf, self.color, (self.radius, self.radius), self.radius,
                            draw_top_right=True, draw_bottom_right=True)
         elif self.percentage > 0.25:
-            pg.draw.circle(surf, self.color, (self.radius, self.radius), self.radius-1,
+            pg.draw.circle(surf, self.color, (self.radius, self.radius), self.radius,
                            draw_top_right=True)
+        # outline
+        pg.draw.circle(surf, self.outline, (self.radius, self.radius), self.radius, 1)
         surf.set_colorkey(self.background)
         win.blit(surf, self.pos)
 

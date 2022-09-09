@@ -1,7 +1,7 @@
 import random
-from math import atan2, degrees, pi, sin, cos
+from math import atan2, pi, sin, cos, sqrt
 import config
-import pygame as pg
+from pg_funcs import *
 
 
 class BaseEnemy:
@@ -17,6 +17,7 @@ class BaseEnemy:
         self.status = config.BASE_STATUS.copy()
         self.timer = 0
         self.max_time = 15
+        self.num_converge = 0
         self.dmg = dmg
         self.status_tick_timers = config.BASE_STATUS.copy()
         self.status_tick_rate = config.FRAME_RATE//2
@@ -44,7 +45,7 @@ class BaseEnemy:
             self.stats['hp percentage'] = 0
         else:
             self.stats['hp percentage'] = self.stats['hp']/self.stats['max hp']
-        return int(self.stats['hp percentage']/0.25)
+        return int(self.stats['hp percentage']/0.01)
 
     def calculate_status(self):
         prev_hp = self.stats['hp']
@@ -65,13 +66,14 @@ class BaseEnemy:
 
     def converge(self, other):
         if other.radius > self.radius:
-            self.radius = other.radius + self.radius / 3
+            self.radius = other.radius + sqrt(self.radius) / 3
         else:
-            self.radius += other.radius / 3
+            self.radius += sqrt(other.radius) / 3
         self.stats['hp'] += other.stats['hp']
         self.stats['max hp'] += other.stats['max hp']
         self.stats['hp percentage'] = self.stats['hp'] / self.stats['max hp']
         self.exp += other.exp
+        self.num_converge += other.num_converge + 1
         self.create_surface(new_radius=True)
 
     def update(self, player_pos):
@@ -97,25 +99,18 @@ class BaseEnemy:
         if new_radius:
             self.surface = pg.Surface((2 * self.radius,  2 * self.radius))
             self.surface.set_colorkey((0, 0, 0))
-
         self.surface.fill((0, 0, 0))
-        if self.stats['hp percentage'] == 1:
-            pg.draw.circle(self.surface, self.color, (self.radius, self.radius), self.radius)
-            self.drawn_quadrants = 4
-        elif self.stats['hp percentage'] > 0.75:
-            pg.draw.circle(self.surface, self.color, (self.radius, self.radius), self.radius, draw_top_left=True,
-                           draw_bottom_right=True, draw_bottom_left=True)
-            self.drawn_quadrants = 3
-        elif self.stats['hp percentage'] > 0.5:
-            pg.draw.circle(self.surface, self.color, (self.radius, self.radius), self.radius, draw_top_left=True,
-                           draw_bottom_left=True)
-            self.drawn_quadrants = 2
-        elif self.stats['hp percentage'] > 0.25:
-            pg.draw.circle(self.surface, self.color, (self.radius, self.radius), self.radius, draw_top_left=True)
-            self.drawn_quadrants = 1
-        else:
-            self.drawn_quadrants = 0
+        surf_2 = pg.Surface((2*self.radius, 2*self.radius))
+        surf_2.fill((0, 0, 0))
+        pg.draw.rect(surf_2, self.color, (0, 2*self.radius*(1-self.stats['hp percentage']), 2 * self.radius,
+                                          2*self.radius*self.stats['hp percentage']))
+
+        pg.draw.circle(self.surface, (255, 255, 255), (self.radius, self.radius), self.radius)
+        self.surface.blit(surf_2, (0, 0), special_flags=pg.BLEND_RGB_MIN)
         pg.draw.circle(self.surface, (255, 255, 255), (self.radius, self.radius), self.radius, width=1)
+        if self.num_converge != 0:
+            text, pos = centred_text(str(self.num_converge), config.FONTS['dmg notification'], (self.radius, self.radius), (255,255,255))
+            self.surface.blit(text, pos)
 
     def draw(self, win, camera):
         x, y = camera.object_pos(self.pos.x, self.pos.y)

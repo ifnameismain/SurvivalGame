@@ -35,7 +35,7 @@ class Bullet:
 
 
 class StatusBomb:
-    def __init__(self, x, y, velocity, notification, dmg, color, alt_color, radius, other_radius):
+    def __init__(self, x, y, velocity, notification, dmg, color, radius, other_radius):
         self.pos = pg.Vector2(x, y)
         self.target = pg.Vector2(x, y)
         self.velocity = velocity
