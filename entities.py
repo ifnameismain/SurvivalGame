@@ -28,11 +28,11 @@ class Player:
         self.create_surface()
 
     def modify_stats(self, stat):
-        s = config.UPGRADES['player'][stat]['stat']
-        self.stats[s] += config.UPGRADES['player'][stat]['amount']
-        if s == "max hp":
-            self.stats["hp"] += config.UPGRADES['player'][stat]['amount']
-        elif s == "speed":
+        s = config.UPGRADES['player'][stat]
+        self.stats[s['stat']] += s['amount']
+        if s['stat'] == "max hp":
+            self.stats["hp"] += s['amount']
+        elif s['stat'] == "speed":
             pass
         else:
             self.update_attacks()
@@ -54,7 +54,7 @@ class Player:
             self.stats['exp'] -= self.stats['lvl'] * 5 + 10
             self.stats['lvl'] += 1
             self.exp_percentage = self.stats['exp'] / (self.stats['lvl'] * 5 + 10)
-            return True
+            return True 
         self.exp_percentage = self.stats['exp']/(self.stats['lvl'] * 5 + 10)
         return False
 
@@ -125,7 +125,7 @@ class Player:
 
     def calculate_angle(self):
         mx, my = get_mouse()
-        x, y = mx - config.UNSCALED_SIZE[0]//2, my - config.UNSCALED_SIZE[1]//2
+        x, y = mx - config.WIDTH//2, my - config.HEIGHT//2
         if y < 0:
             self.rotation = 270 - (atan((x / y)) * 180 / pi)
         elif y > 0:
@@ -142,24 +142,30 @@ class Player:
                 self.attacks[attack]['dmg dict'] = {"normal": (self.attacks[attack]['dmg'] +
                                                                self.stats['flat dmg']) * self.stats['% damage']}
                 if 'status' in self.attacks[attack].keys():
-                    self.attacks[attack]['dmg dict'][self.attacks[attack]["status"]] = (1 + self.stats['flat status']) *\
-                                                                                        self.stats['% status']
-                    self.attacks[attack]['dmg dict'][self.attacks[attack]["status"] +
-                                                     " chance"] = self.attacks[attack]["chance"]
-                self.dmg_notification[attack] = centred_text(str(int(self.attacks[attack]['dmg dict']['normal'])),
-                                                             config.FONTS['dmg notification'],
-                                                             (0, 0), (255, 255, 255), return_offset=True)
-
+                    status = self.attacks[attack]["status"]
+                    self.attacks[attack]['dmg dict'][status] = (1 + self.stats['flat status']) * self.stats['% status']
+                    self.attacks[attack]['dmg dict'][status + " chance"] = self.attacks[attack]["chance"]
+                    self.dmg_notification[attack] = centred_text(str(int(self.attacks[attack]['dmg dict']['normal'])),
+                                                                 config.FONTS['dmg notification'],
+                                                                 (0, 0), config.COLORS[status], return_offset=True)
+                else:
+                    self.dmg_notification[attack] = centred_text(str(int(self.attacks[attack]['dmg dict']['normal'])),
+                                                                 config.FONTS['dmg notification'],
+                                                                 (0, 0), config.COLORS["normal"], return_offset=True)
         else:
             self.attacks[key]['dmg dict'] = {"normal": (self.attacks[key]['dmg'] +
                                                         self.stats['flat dmg']) * self.stats['% damage']}
             if 'status' in self.attacks[key].keys():
-                self.attacks[key]['dmg dict'][self.attacks[key]["status"]] = (1 + self.stats['flat status']) *\
-                                                                                       self.stats['% status']
-                self.attacks[key]['dmg dict'][self.attacks[key]["status"] + " chance"] = self.attacks[key]["chance"]
-            self.dmg_notification[key] = centred_text(str(int(self.attacks[key]['dmg dict']['normal'])),
-                                                      config.FONTS['dmg notification'], (0, 0), (255, 255, 255),
-                                                      return_offset=True)
+                status = self.attacks[key]["status"]
+                self.attacks[key]['dmg dict'][status] = (1 + self.stats['flat status']) * self.stats['% status']
+                self.attacks[key]['dmg dict'][status + " chance"] = self.attacks[key]["chance"]
+                self.dmg_notification[key] = centred_text(str(int(self.attacks[key]['dmg dict']['normal'])),
+                                                             config.FONTS['dmg notification'],
+                                                             (0, 0), config.COLORS[status], return_offset=True)
+            else:
+                self.dmg_notification[key] = centred_text(str(int(self.attacks[key]['dmg dict']['normal'])),
+                                                             config.FONTS['dmg notification'],
+                                                             (0, 0), config.COLORS["normal"], return_offset=True)
 
     def register_attack(self, attack):
         self.attacks[attack] = config.UPGRADES['attacks'][attack]

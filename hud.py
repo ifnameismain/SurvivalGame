@@ -8,42 +8,50 @@ class StatusBar:
     def __init__(self, x, y, length, width, color):
         self.width = width
         self.length = length
-        self.outline = (255, 255, 255)
+        self.outline = config.COLORS['outline']
         self.background = (0, 0, 0)
         self.pos = pg.Vector2(x, y)
         self.color = color
         self.percentage = 0
+        self.last_percentage = 0
         self.min_percentage = width/(length + 2*width)
+        self.surface = pg.Surface((self.length + self.width, self.width))
+        self.surface.set_colorkey((0, 0, 0))
+        self.create_surface()
 
     def update(self, percentage):
         self.percentage = percentage
-
-    def draw(self, win):
-        # outline
-        surf = pg.Surface((self.length + self.width, self.width))
-        pg.draw.circle(surf, self.outline, (self.width//2, self.width//2), self.width//2, 1)
-        pg.draw.circle(surf, self.outline, (self.width//2 + self.length, self.width//2), self.width // 2, 1)
-        pg.draw.rect(surf, self.background, (self.width//2, 0, self.length, self.width))
-        pg.draw.line(surf, self.outline, (self.width//2, 0),
-                     (self.width//2 + self.length, 0))
-        pg.draw.line(surf, self.outline, (self.width//2, self.width - 1),
-                     (self.width//2 + self.length, self.width - 1))
+        if self.last_percentage != percentage:
+            self.last_percentage = percentage
+            self.create_surface()
+        
+    def create_surface(self):
+        self.surface.fill((0, 0, 0))
+        pg.draw.circle(self.surface, self.outline, (self.width // 2, self.width // 2), self.width // 2, 1)
+        pg.draw.circle(self.surface, self.outline, (self.width // 2 + self.length, self.width // 2), self.width // 2, 1)
+        pg.draw.rect(self.surface, (0, 0, 0), (self.width // 2, 0, self.length, self.width))
+        pg.draw.line(self.surface, self.outline, (self.width // 2, 0),
+                     (self.width // 2 + self.length, 0))
+        pg.draw.line(self.surface, self.outline, (self.width // 2, self.width - 1),
+                     (self.width // 2 + self.length, self.width - 1))
 
         # percentage
         if self.percentage == 0:
             pass
         elif 0 < self.percentage < self.min_percentage:
-            pg.draw.circle(surf, self.color, (self.width//2, self.width//2), -1 + self.width // 2)
+            pg.draw.circle(self.surface, self.color, (self.width // 2, self.width // 2), -1 + self.width // 2)
         elif self.percentage > 1 - self.min_percentage:
-            pg.draw.circle(surf, self.color, (self.width//2, self.width//2), -1 + self.width // 2)
-            pg.draw.circle(surf, self.color,  (self.width//2 + self.length, self.width//2), -1 + self.width // 2)
-            pg.draw.rect(surf, self.color, (self.width//2, 1, self.length, self.width - 2))
+            pg.draw.circle(self.surface, self.color, (self.width // 2, self.width // 2), -1 + self.width // 2)
+            pg.draw.circle(self.surface, self.color, (self.width // 2 + self.length, self.width // 2), -1 + self.width // 2)
+            pg.draw.rect(self.surface, self.color, (self.width // 2, 1, self.length, self.width - 2))
         else:
-            pg.draw.circle(surf, self.color, (self.width//2, self.width//2), -1 + self.width // 2)
-            multiplier = (1 + self.min_percentage)/(1 - self.min_percentage) * self.percentage - self.min_percentage
-            pg.draw.rect(surf, self.color, (self.width//2, 1, self.length * multiplier, self.width - 2))
-        surf.set_colorkey(self.background)
-        win.blit(surf, self.pos)
+            pg.draw.circle(self.surface, self.color, (self.width // 2, self.width // 2), -1 + self.width // 2)
+            multiplier = (1 + self.min_percentage) / (1 - self.min_percentage) * self.percentage - self.min_percentage
+            pg.draw.rect(self.surface, self.color, (self.width // 2, 1, self.length * multiplier, self.width - 2))
+        self.surface.set_colorkey((0, 0, 0))
+
+    def draw(self, win):
+        win.blit(self.surface, self.pos)
 
 
 class StatusCircle:
@@ -127,6 +135,39 @@ class UpgradeCard:
             win.blit(self.status, self.status_pos)
 
 
+class StatusSquare:
+    def __init__(self, x, y, width, color, image):
+        self.width = width
+        self.image = image
+        self.outline = (255, 255, 255)
+        self.background = (0, 0, 0)
+        self.pos = pg.Vector2(x, y)
+        self.color = color
+        self.percentage = 1
+        self.last_percentage = 1
+        self.surface = pg.Surface((self.width, self.width))
+        self.surface.set_colorkey((0, 0, 0))
+        self.create_surface()
+
+    def update(self, percentage, color=None):
+        if color is not None:
+            self.color = color
+        self.percentage = percentage
+        if self.percentage != self.last_percentage:
+            self.last_percentage = percentage
+            self.create_surface()
+
+    def create_surface(self):
+        self.surface.fill((0, 0, 0))
+        pg.draw.rect(self.surface, config.COLORS['outline'], (0, self.width * (1 - self.percentage),
+                                                              self.width, self.width * self.percentage))
+        # outline
+        pg.draw.rect(self.surface, config.COLORS['outline'], (0, 0, self.width, self.width), 1)
+
+    def draw(self, win):
+        win.blit(self.surface, self.pos)
+
+
 class HUD:
     def __init__(self):
         self.hp_bar = StatusBar(100, 500, 200, 20, (255, 0, 0))
@@ -137,6 +178,9 @@ class HUD:
         self.hp_bar.update(hp)
         self.exp_bar.update(level)
         self.circle.update(dash)
+        for power in powers:
+            pass
+
 
     def draw(self, win):
         self.hp_bar.draw(win)

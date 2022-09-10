@@ -21,7 +21,7 @@ class StationaryCamera:
 
 class PlayerCamera:
     def __init__(self):
-        self.cx, self.cy = config.UNSCALED_SIZE[0] // 2, config.UNSCALED_SIZE[1] // 2
+        self.cx, self.cy = config.WIDTH // 2, config.HEIGHT // 2
         self.player_x, self.player_y = 0, 0
         self.player_width, self.player_height = 0, 0
         self.origin_x, self.origin_y = 0, 0
@@ -41,7 +41,7 @@ class PlayerCamera:
 
 class SmoothCamera:
     def __init__(self):
-        self.cx, self.cy = config.UNSCALED_SIZE[0] // 2, config.UNSCALED_SIZE[1] // 2
+        self.cx, self.cy = config.WIDTH // 2, config.HEIGHT // 2
         self.camera_x, self.camera_y = 0, 0
         self.blit_x, self.blit_y = self.cx, self.cy
         self.player_x, self.player_y = 0, 0
