@@ -220,6 +220,7 @@ class MageEnemy:
         self.max_time = 15
         self.num_converge = 0
         self.dmg = dmg
+        self.kite = False
         self.status_tick_timers = config.BASE_STATUS.copy()
         self.status_tick_rate = config.FRAME_RATE//2
         self.type = "base"
@@ -281,8 +282,12 @@ class MageEnemy:
     def update(self, player_pos):
         if self.pos.x + self.radius > player_pos.x + config.WIDTH // 2 or self.pos.x - self.radius < player_pos.x - config.WIDTH // 2:
             self.drawable = False
+            if random.uniform(0, 1) < 0.02:
+                self.kite = True
         elif self.pos.y + self.radius > player_pos.y + config.HEIGHT // 2 or self.pos.y - self.radius < player_pos.y - config.HEIGHT // 2:
             self.drawable = False
+            if random.uniform(0, 1) < 0.02:
+                self.kite = True
         else:
             self.drawable = False
         rise = player_pos.y - self.pos.y

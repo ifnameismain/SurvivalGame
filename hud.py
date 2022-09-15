@@ -101,8 +101,7 @@ class UpgradeCard:
         if self.type == "attacks":
             self.image, self.image_pos = ALL_ATTACKS[config.UPGRADES[self.type][self.info_key]['class']](
                 0, 0, pg.Vector2(0, 0), notification=None, dmg=None, **self.info['inits']).get_image()
-            self.image = pg.transform.scale2x(self.image)
-            self.image_pos = (self.x + 2 * self.image_pos[0] + self.width//2, self.y + 160 + 2 * self.image_pos[1])
+            self.image_pos = (self.x + self.image_pos[0] + self.width//2, self.y + 160 + self.image_pos[1])
 
         self.name, self.name_pos = centred_text(self.info_key, config.FONTS['name'], (self.x + self.width//2, self.y + 50),
                                                 (255, 248, 220))

@@ -101,24 +101,31 @@ class Player:
         self.pos.x += self.vel.x
         self.pos.y += self.vel.y
 
-    def attack(self):
+    def attack(self, camera):
         base_velocity = None
         for attack_type, attack in self.attacks.items():
             if attack['timer'] == attack['cd'] * config.FRAME_RATE:
                 if base_velocity is None:
                     self.calculate_angle()
                     base_velocity = pg.Vector2(cos(radians(self.rotation)), sin(radians(self.rotation)))
-                velocity = pg.Vector2(base_velocity.x * attack['speed'], base_velocity.y * attack['speed'])
-                self.casts.append(ALL_ATTACKS[attack['class']](self.pos.x, self.pos.y, velocity,
-                                  notification=self.dmg_notification[attack_type],
-                                  dmg=attack['dmg dict'], **attack['inits']))
+                if attack['class'] == "Bullet":
+                    velocity = pg.Vector2(base_velocity.x * attack['speed'], base_velocity.y * attack['speed'])
+                    self.casts.append(ALL_ATTACKS[attack['class']](self.pos.x, self.pos.y, velocity,
+                                      notification=self.dmg_notification[attack_type],
+                                      dmg=attack['dmg dict'], **attack['inits']))
+                else:
+                    velocity = pg.Vector2(base_velocity.x * attack['speed'], base_velocity.y * attack['speed'])
+                    self.casts.append(ALL_ATTACKS[attack['class']](self.pos.x, self.pos.y,
+                                                                   *camera.player_relative(*get_mouse()), velocity,
+                                                                   notification=self.dmg_notification[attack_type],
+                                                                   dmg=attack['dmg dict'], **attack['inits']))
                 attack['timer'] = 0
             else:
                 attack['timer'] += 1
 
-    def update(self):
+    def update(self, camera):
         self.move()
-        self.attack()
+        self.attack(camera)
         for attack in self.casts:
             attack.update()
         self.rect = pg.Rect(self.pos.x-self.hw, self.pos.y-self.hw, self.w, self.w)

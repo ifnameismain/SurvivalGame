@@ -61,5 +61,20 @@
     },
     "type": "projectile",
     "description": "Hollow point bullet projectile. Inflicts bleed"
+  },
+    "Fire Bomb": {
+    "class": "StatusBomb",
+    "dmg": 0,
+    "speed": 5,
+    "cd": 2,
+    "status": "burn",
+    "chance": 1,
+    "inits": {
+      "radius": 6,
+      "other_radius": 60
+
+    },
+    "type": "projectile",
+    "description": "Fire type AOE bomb. Inflicts burn"
   }
 }

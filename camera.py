@@ -38,6 +38,9 @@ class PlayerCamera:
     def object_pos(self, x, y):
         return x + (self.cx - self.player_x), y + (self.cy - self.player_y)
 
+    def player_relative(self, x, y):
+        return x + (self.player_x - self.cx), y + (self.player_y - self.cy)
+
 
 class SmoothCamera:
     def __init__(self):

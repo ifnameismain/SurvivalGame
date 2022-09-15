@@ -19,7 +19,6 @@ class GameScreen:
         self.camera = PlayerCamera()
         self.map.update_background(self.player.pos)
         self.notifications = []
-        self.area = AreaEffect(0, 0, (0, 255, 255), 100)
 
     def pre_switch(self, upgrade):
         if upgrade is not None:
@@ -40,7 +39,7 @@ class GameScreen:
     def update(self):
         for event in pg.event.get():
             self.check_event(event)
-        self.player.update()
+        self.player.update(self.camera)
         self.wave.update(self.player.pos)
         for e in self.wave.enemies.copy():
             e.update(self.player.pos)
