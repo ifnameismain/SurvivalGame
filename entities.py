@@ -111,13 +111,11 @@ class Player:
                 if attack['class'] == "Bullet":
                     velocity = pg.Vector2(base_velocity.x * attack['speed'], base_velocity.y * attack['speed'])
                     self.casts.append(ALL_ATTACKS[attack['class']](self.pos.x, self.pos.y, velocity,
-                                      notification=self.dmg_notification[attack_type],
                                       dmg=attack['dmg dict'], **attack['inits']))
                 else:
                     velocity = pg.Vector2(base_velocity.x * attack['speed'], base_velocity.y * attack['speed'])
                     self.casts.append(ALL_ATTACKS[attack['class']](self.pos.x, self.pos.y,
                                                                    *camera.player_relative(*get_mouse()), velocity,
-                                                                   notification=self.dmg_notification[attack_type],
                                                                    dmg=attack['dmg dict'], **attack['inits']))
                 attack['timer'] = 0
             else:
@@ -152,13 +150,6 @@ class Player:
                     status = self.attacks[attack]["status"]
                     self.attacks[attack]['dmg dict'][status] = (1 + self.stats['flat status']) * self.stats['% status']
                     self.attacks[attack]['dmg dict'][status + " chance"] = self.attacks[attack]["chance"]
-                    self.dmg_notification[attack] = centred_text(str(int(self.attacks[attack]['dmg dict'][status])),
-                                                                 config.FONTS['dmg notification'],
-                                                                 (0, 0), config.COLORS[status], return_offset=True)
-                else:
-                    self.dmg_notification[attack] = centred_text(str(int(self.attacks[attack]['dmg dict']['normal'])),
-                                                                 config.FONTS['dmg notification'],
-                                                                 (0, 0), config.COLORS["normal"], return_offset=True)
         else:
             self.attacks[key]['dmg dict'] = {"normal": (self.attacks[key]['dmg'] +
                                                         self.stats['flat dmg']) * self.stats['% damage']}
@@ -166,13 +157,6 @@ class Player:
                 status = self.attacks[key]["status"]
                 self.attacks[key]['dmg dict'][status] = (1 + self.stats['flat status']) * self.stats['% status']
                 self.attacks[key]['dmg dict'][status + " chance"] = self.attacks[key]["chance"]
-                self.dmg_notification[key] = centred_text(str(int(self.attacks[key]['dmg dict'][status])),
-                                                             config.FONTS['dmg notification'],
-                                                             (0, 0), config.COLORS[status], return_offset=True)
-            else:
-                self.dmg_notification[key] = centred_text(str(int(self.attacks[key]['dmg dict']['normal'])),
-                                                             config.FONTS['dmg notification'],
-                                                             (0, 0), config.COLORS["normal"], return_offset=True)
 
     def register_attack(self, attack):
         self.attacks[attack] = config.UPGRADES['attacks'][attack]

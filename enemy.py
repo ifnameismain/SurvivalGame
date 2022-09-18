@@ -2,6 +2,7 @@ import random
 from math import atan2, pi, sin, cos, sqrt
 import config
 from pg_funcs import *
+import sys
 
 
 class BaseEnemy:
@@ -15,54 +16,69 @@ class BaseEnemy:
         self.vel = pg.Vector2(x, y)
         self.stats = {"max hp": hp, "hp": hp, "dmg": dmg, "hp percentage": 1, "base speed": speed, "speed": speed}
         self.status = config.BASE_STATUS.copy()
+        self.status_inflicted = self.status.copy()
         self.timer = 0
         self.max_time = 15
         self.num_converge = 0
         self.dmg = dmg
         self.status_tick_timers = config.BASE_STATUS.copy()
-        self.status_tick_rate = config.FRAME_RATE//2
+        self.status_tick_rate = config.FRAME_RATE
         self.type = "base"
         self.exp = 15
-        self.drawn_quadrants = 4
+        self.drawn_quadrants = 10
         self.drawable = False
         self.surface = pg.Surface((2 * self.radius, 2 * self.radius))
         self.surface.set_colorkey((0, 0, 0))
         self.create_surface()
 
     def get_notification(self):
-        match len([0 for x in self.status.values() if x != 0]):
+
+        match len([0 for x in self.status_inflicted.values() if x != 0]):
             case 0:
                 return []
             case 1:
-                return [centred_text(val, config.FONTS['dmg notification'], (self.pos.x + offset, self.pos.y), config.COLORS[key])
-                        for (key, val), offset in zip(self.status.items(), [0]) if val != 0]
+                sys.stdout.flush()
+                return [centred_text(self.calculate_status_dmg(key, val), config.FONTS['dmg notification'],
+                                     (self.pos.x + offset, self.pos.y), config.COLORS[key])
+                        for (key, val), offset in zip(self.status_inflicted.items(), [30]) if val != 0]
             case 2:
-                return [centred_text(val, config.FONTS['dmg notification'], (self.pos.x + offset, self.pos.y),
+                return [centred_text(self.calculate_status_dmg(key, val), config.FONTS['dmg notification'],
+                                     (self.pos.x + offset, self.pos.y),
                                      config.COLORS[key])
-                        for (key, val), offset in zip(self.status.items(), [-10, 10]) if val != 0]
+                        for (key, val), offset in zip(self.status_inflicted.items(), [-10, 10]) if val != 0]
             case 3:
-                return [centred_text(val, config.FONTS['dmg notification'], (self.pos.x + offset, self.pos.y),
+                return [centred_text(self.calculate_status_dmg(key, val), config.FONTS['dmg notification'],
+                                     (self.pos.x + offset, self.pos.y),
                                      config.COLORS[key])
-                        for (key, val), offset in zip(self.status.items(), [-20, 0, 20]) if val != 0]
+                        for (key, val), offset in zip(self.status_inflicted.items(), [-20, 0, 20]) if val != 0]
             case 4:
-                return [centred_text(val, config.FONTS['dmg notification'], (self.pos.x + offset, self.pos.y),
+                return [centred_text(self.calculate_status_dmg(key, val), config.FONTS['dmg notification'],
+                                     (self.pos.x + offset, self.pos.y),
                                      config.COLORS[key])
-                        for (key, val), offset in zip(self.status.items(), [-10]) if val != 0]
+                        for (key, val), offset in zip(self.status_inflicted.items(), [-10]) if val != 0]
             case 5:
-                return [centred_text(val, config.FONTS['dmg notification'], (self.pos.x + offset, self.pos.y),
+                return [centred_text(self.calculate_status_dmg(key, val), config.FONTS['dmg notification'],
+                                     (self.pos.x + offset, self.pos.y),
                                      config.COLORS[key])
-                        for (key, val), offset in zip(self.status.items(), [0]) if val != 0]
+                        for (key, val), offset in zip(self.status_inflicted.items(), [0]) if val != 0]
 
     def add_dmg(self, dmg: dict):
         for key, val in dmg.items():
             if "chance" not in key:
-                self.status[key] += val
+                self.status[key] = val
+                self.status_inflicted[key] += 1
 
     def inflict_status(self, key, val):
         if key == "slow":
             self.stats['speed'] = self.stats['base speed'] - 0.03 * val
         else:
-            self.stats['hp'] -= val * 3
+            self.stats['hp'] -= self.calculate_status_dmg(key, val)
+
+    def calculate_status_dmg(self, s, a):
+        if s == 'normal':
+            return round(self.status[s], 1)
+        d = 3 + (self.status[s]*a - 1)
+        return round(d, 1)
 
     def calculate_health(self):
         if self.stats['hp'] < 0:
@@ -74,15 +90,13 @@ class BaseEnemy:
 
     def calculate_status(self):
         prev_hp = self.stats['hp']
-        for key, val in self.status.items():
+        for key, val in self.status_inflicted.copy().items():
             if val != 0:
                 if key == "normal":
-                    self.stats['hp'] -= val
-                    self.status[key] = 0
+                    self.stats['hp'] -= self.status['normal']
                 elif self.status_tick_timers[key] == self.status_tick_rate:
                     self.status_tick_timers[key] = 0
                     self.inflict_status(key, val)
-                    self.status[key] -= 1
                 else:
                     self.status_tick_timers[key] += 1
         if prev_hp != self.stats['hp']:

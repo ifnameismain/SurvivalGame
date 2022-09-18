@@ -68,6 +68,9 @@ class GameScreen:
                         break
         for e in self.wave.enemies:
             if nots := e.get_notification():
+                for key, val in e.status_inflicted.items():
+                    if val != 0:
+                        e.status_inflicted[key] -= 1
                 for n in nots:
                     self.notifications.append([30, n])
         for exp in self.exp_points.copy():
