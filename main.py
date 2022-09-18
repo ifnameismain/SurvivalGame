@@ -12,7 +12,7 @@ class Controller:
         self.screen = None
 
     def blit_fps(self):
-        self.window.blit(*centred_text(str(int(self.clock.get_fps())),
+        self.window.blit(*centred_text(str(round(self.clock.get_fps(), 1)),
                                        config.FONTS['dmg notification'], (20, 20), (255, 255, 255)))
 
     def switch_state(self, state, other=None):

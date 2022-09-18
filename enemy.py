@@ -29,6 +29,30 @@ class BaseEnemy:
         self.surface.set_colorkey((0, 0, 0))
         self.create_surface()
 
+    def get_notification(self):
+        match len([0 for x in self.status.values() if x != 0]):
+            case 0:
+                return []
+            case 1:
+                return [centred_text(val, config.FONTS['dmg notification'], (self.pos.x + offset, self.pos.y), config.COLORS[key])
+                        for (key, val), offset in zip(self.status.items(), [0]) if val != 0]
+            case 2:
+                return [centred_text(val, config.FONTS['dmg notification'], (self.pos.x + offset, self.pos.y),
+                                     config.COLORS[key])
+                        for (key, val), offset in zip(self.status.items(), [-10, 10]) if val != 0]
+            case 3:
+                return [centred_text(val, config.FONTS['dmg notification'], (self.pos.x + offset, self.pos.y),
+                                     config.COLORS[key])
+                        for (key, val), offset in zip(self.status.items(), [-20, 0, 20]) if val != 0]
+            case 4:
+                return [centred_text(val, config.FONTS['dmg notification'], (self.pos.x + offset, self.pos.y),
+                                     config.COLORS[key])
+                        for (key, val), offset in zip(self.status.items(), [-10]) if val != 0]
+            case 5:
+                return [centred_text(val, config.FONTS['dmg notification'], (self.pos.x + offset, self.pos.y),
+                                     config.COLORS[key])
+                        for (key, val), offset in zip(self.status.items(), [0]) if val != 0]
+
     def add_dmg(self, dmg: dict):
         for key, val in dmg.items():
             if "chance" not in key:

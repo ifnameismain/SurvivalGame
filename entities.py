@@ -152,7 +152,7 @@ class Player:
                     status = self.attacks[attack]["status"]
                     self.attacks[attack]['dmg dict'][status] = (1 + self.stats['flat status']) * self.stats['% status']
                     self.attacks[attack]['dmg dict'][status + " chance"] = self.attacks[attack]["chance"]
-                    self.dmg_notification[attack] = centred_text(str(int(self.attacks[attack]['dmg dict']['normal'])),
+                    self.dmg_notification[attack] = centred_text(str(int(self.attacks[attack]['dmg dict'][status])),
                                                                  config.FONTS['dmg notification'],
                                                                  (0, 0), config.COLORS[status], return_offset=True)
                 else:
@@ -166,7 +166,7 @@ class Player:
                 status = self.attacks[key]["status"]
                 self.attacks[key]['dmg dict'][status] = (1 + self.stats['flat status']) * self.stats['% status']
                 self.attacks[key]['dmg dict'][status + " chance"] = self.attacks[key]["chance"]
-                self.dmg_notification[key] = centred_text(str(int(self.attacks[key]['dmg dict']['normal'])),
+                self.dmg_notification[key] = centred_text(str(int(self.attacks[key]['dmg dict'][status])),
                                                              config.FONTS['dmg notification'],
                                                              (0, 0), config.COLORS[status], return_offset=True)
             else:
@@ -184,11 +184,13 @@ class Player:
         pg.draw.rect(self.surface, self.color, rect)
         pg.draw.rect(self.surface, (255, 255, 255), rect, width=1)
 
+    def draw_casts(self, win, camera):
+        for attack in self.casts:
+            attack.draw(win, camera)
+
     def draw(self, win, camera):
         x, y = camera.player_pos(self.pos.x, self.pos.y)
         win.blit(self.surface, (x - self.hw, y - self.hw))
-        for attack in self.casts:
-            attack.draw(win, camera)
 
 
 class Crosshair:

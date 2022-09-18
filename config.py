@@ -27,6 +27,7 @@ BASE_STATUS = json.load(open("status.json", 'r'))
 UPGRADES = {"attacks": json.load(open("cards/attacks.json", 'r')),
             "player": json.load(open("cards/player.json", 'r'))}
            # "upgrades": json.load(open("cards/upgrades.json", 'r'))}
+
 pg.mouse.set_visible(False)
 COLORS = {"outline": (255, 255, 255),
           'background': (120, 120, 120),
@@ -41,3 +42,5 @@ for attack in UPGRADES['attacks'].values():
         attack['inits']['color'] = COLORS[attack['status']]
     else:
         attack['inits']['color'] = COLORS["normal"]
+    if attack['class'] in ["StatusBomb"]:
+        attack['inits']['alt_color'] = COLORS[attack['status']]

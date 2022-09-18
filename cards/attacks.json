@@ -66,13 +66,12 @@
     "class": "StatusBomb",
     "dmg": 0,
     "speed": 5,
-    "cd": 2,
+    "cd": 6,
     "status": "burn",
     "chance": 1,
     "inits": {
       "radius": 6,
-      "other_radius": 60
-
+      "other_radius": 80
     },
     "type": "projectile",
     "description": "Fire type AOE bomb. Inflicts burn"

@@ -4,7 +4,6 @@ from map import Map
 from camera import *
 from enemy import *
 from wave import Wave
-from effects import AreaEffect
 
 
 class GameScreen:
@@ -43,7 +42,7 @@ class GameScreen:
         self.wave.update(self.player.pos)
         for e in self.wave.enemies.copy():
             e.update(self.player.pos)
-            if e.stats['hp'] == 0:
+            if e.stats['hp'] <= 0:
                 self.exp_points.append(ExpPoint(e.pos.x, e.pos.y, e.exp))
                 self.wave.enemies.remove(e)
                 continue
@@ -55,11 +54,22 @@ class GameScreen:
                 self.player.casts.remove(bullet)
                 continue
             for e in self.wave.enemies.copy():
-                if bullet.rect.colliderect(e.rect):
-                    e.add_dmg(bullet.dmg)
-                    self.notifications.append([30, bullet.get_notification()])
-                    self.player.casts.remove(bullet)
-                    break
+                if isinstance(bullet, Bullet):
+                    if bullet.rect.colliderect(e.rect):
+                        e.add_dmg(bullet.get_dmg())
+                        self.player.casts.remove(bullet)
+                        break
+                elif isinstance(bullet, StatusBomb):
+                    if bullet.state == 1:
+                        if bullet.rect.colliderect(e.rect):
+                            e.add_dmg(bullet.get_dmg())
+                    elif bullet.state == 2:
+                        self.player.casts.remove(bullet)
+                        break
+        for e in self.wave.enemies:
+            if nots := e.get_notification():
+                for n in nots:
+                    self.notifications.append([30, n])
         for exp in self.exp_points.copy():
             if abs(self.player.pos.x - exp.pos.x) < config.WIDTH // 2 and \
                     abs(self.player.pos.y - exp.pos.y) < config.HEIGHT // 2:
@@ -84,7 +94,7 @@ class GameScreen:
         self.map.draw(surface)
         self.camera.update_player(self.player.pos.x, self.player.pos.y)
         self.camera.update_camera()
-        self.area.draw(surface, self.camera)
+        self.player.draw_casts(surface, self.camera)
         for exp in self.exp_points:
             if exp.drawable:
                 exp.draw(surface, self.camera)
@@ -269,8 +279,7 @@ class SimGame:
                 continue
             for e in self.wave.enemies.copy():
                 if bullet.rect.colliderect(e.rect):
-                    e.add_dmg(bullet.dmg)
-                    self.notifications.append([30, bullet.get_notification()])
+                    e.add_dmg(bullet.get_dmg())
                     self.player.casts.remove(bullet)
                     break
         for exp in self.exp_points.copy():

@@ -30,6 +30,7 @@ def create_text_object(text, font, position: tuple, color, max_size=(0, 0), line
 
 
 def centred_text(text, font, centre_pos: tuple, color, return_offset=False):
+    text = str(text)
     text_surface, rect = font.render(text, color)
     text_width, text_height = rect.size
     if return_offset:

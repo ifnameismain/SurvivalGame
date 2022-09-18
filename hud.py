@@ -99,8 +99,12 @@ class UpgradeCard:
         self.info_key = random.choice([key for key in config.UPGRADES[self.type].keys()])
         self.info = config.UPGRADES[self.type][self.info_key]
         if self.type == "attacks":
-            self.image, self.image_pos = ALL_ATTACKS[config.UPGRADES[self.type][self.info_key]['class']](
-                0, 0, pg.Vector2(0, 0), notification=None, dmg=None, **self.info['inits']).get_image()
+            if self.info['class'] == "Bullet":
+                self.image, self.image_pos = ALL_ATTACKS[self.info['class']](
+                    0, 0, pg.Vector2(1, 1), notification=None, dmg=None, **self.info['inits']).get_image()
+            else:
+                self.image, self.image_pos = ALL_ATTACKS[self.info['class']](
+                    0, 0, 0, 0, pg.Vector2(1, 1), notification=None, dmg=None, **self.info['inits']).get_image()
             self.image_pos = (self.x + self.image_pos[0] + self.width//2, self.y + 160 + self.image_pos[1])
 
         self.name, self.name_pos = centred_text(self.info_key, config.FONTS['name'], (self.x + self.width//2, self.y + 50),
@@ -179,7 +183,6 @@ class HUD:
         self.circle.update(dash)
         for power in powers:
             pass
-
 
     def draw(self, win):
         self.hp_bar.draw(win)
