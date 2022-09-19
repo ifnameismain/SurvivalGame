@@ -53,7 +53,7 @@ class GameScreen:
                     abs(bullet.pos.y - self.player.pos.y) > config.HEIGHT // 2:
                 self.player.casts.remove(bullet)
                 continue
-            for e in self.wave.enemies.copy():
+            for e in self.wave.enemies:
                 if isinstance(bullet, Bullet):
                     if bullet.rect.colliderect(e.rect):
                         e.add_dmg(bullet.get_dmg())
@@ -67,12 +67,18 @@ class GameScreen:
                         self.player.casts.remove(bullet)
                         break
         for e in self.wave.enemies:
+            e.calculate_status()
             if nots := e.get_notification():
-                for key, val in e.status_inflicted.items():
-                    if val != 0:
-                        e.status_inflicted[key] -= 1
-                for n in nots:
+                for n in nots[1]:
                     self.notifications.append([30, n])
+            e.status_inflicted['normal'] = 0
+            for key in e.status_inflicted:
+                if key == "normal":
+                    continue
+                else:
+                    if e.status_tick_timers[key] == e.status_tick_rate:
+                        if e.status_inflicted[key] != 0:
+                            e.status_inflicted[key] -= 1
         for exp in self.exp_points.copy():
             if abs(self.player.pos.x - exp.pos.x) < config.WIDTH // 2 and \
                     abs(self.player.pos.y - exp.pos.y) < config.HEIGHT // 2:

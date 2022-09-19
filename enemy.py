@@ -32,25 +32,24 @@ class BaseEnemy:
         self.create_surface()
 
     def get_notification(self):
-
         match len([0 for x in self.status_inflicted.values() if x != 0]):
             case 0:
-                return []
+                return [[], []]
             case 1:
                 sys.stdout.flush()
-                return [centred_text(self.calculate_status_dmg(key, val), config.FONTS['dmg notification'],
+                return ([k for k, v in self.status_inflicted.items() if v != 0], [centred_text(self.calculate_status_dmg(key, val), config.FONTS['dmg notification'],
                                      (self.pos.x + offset, self.pos.y), config.COLORS[key])
-                        for (key, val), offset in zip(self.status_inflicted.items(), [30]) if val != 0]
+                        for (key, val), offset in zip(self.status_inflicted.items(), [0]) if val != 0])
             case 2:
-                return [centred_text(self.calculate_status_dmg(key, val), config.FONTS['dmg notification'],
-                                     (self.pos.x + offset, self.pos.y),
-                                     config.COLORS[key])
-                        for (key, val), offset in zip(self.status_inflicted.items(), [-10, 10]) if val != 0]
+                return ([k for k, v in self.status_inflicted.items() if v != 0],
+                        [centred_text(self.calculate_status_dmg(key, val), config.FONTS['dmg notification'],
+                                      (self.pos.x + offset, self.pos.y), config.COLORS[key])
+                         for (key, val), offset in zip(self.status_inflicted.items(), [-10, 10, 10, 10]) if val != 0])
             case 3:
-                return [centred_text(self.calculate_status_dmg(key, val), config.FONTS['dmg notification'],
-                                     (self.pos.x + offset, self.pos.y),
-                                     config.COLORS[key])
-                        for (key, val), offset in zip(self.status_inflicted.items(), [-20, 0, 20]) if val != 0]
+                return ([k for k, v in self.status_inflicted.items() if v != 0],
+                        [centred_text(self.calculate_status_dmg(key, val), config.FONTS['dmg notification'],
+                                      (self.pos.x + offset, self.pos.y), config.COLORS[key])
+                         for (key, val), offset in zip(self.status_inflicted.items(), [-10, 10, 10, 10]) if val != 0])
             case 4:
                 return [centred_text(self.calculate_status_dmg(key, val), config.FONTS['dmg notification'],
                                      (self.pos.x + offset, self.pos.y),
@@ -90,7 +89,7 @@ class BaseEnemy:
 
     def calculate_status(self):
         prev_hp = self.stats['hp']
-        for key, val in self.status_inflicted.copy().items():
+        for key, val in self.status_inflicted.items():
             if val != 0:
                 if key == "normal":
                     self.stats['hp'] -= self.status['normal']
@@ -138,7 +137,6 @@ class BaseEnemy:
         else:
             self.pos.y += self.stats['speed'] * m / (m + 1)
         self.rect.update(self.pos.x - self.radius, self.pos.y - self.radius, self.radius*2, self.radius*2)
-        self.calculate_status()
 
     def create_surface(self, new_radius=False):
         if new_radius:
