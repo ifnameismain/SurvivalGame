@@ -17,9 +17,9 @@ class AreaEffect:
     def get_image(self):
         return self.surface, (-self.radius, -self.radius)
 
-    def update(self, x, y):
-        if x != self.pos.x or y != self.pos.y:
-            self.pos.update(x, y)
+    def update(self, pos):
+        if pos != self.pos:
+            self.pos.update(pos.x, pos.y)
             self.rect = pg.Rect(self.pos.x - self.radius, self.pos.y - self.radius, 2 * self.radius, 2 * self.radius)
         if self.animation_timer == self.max_time:
             self.animation_timer = 0
@@ -28,7 +28,7 @@ class AreaEffect:
     def create_surface(self):
         color = (c*0.5 for c in self.color)
         pg.draw.circle(self.surface, (*color, 0.3*255), (self.radius, self.radius), self.radius)
-        pg.draw.circle(self.surface, self.color, (self.radius, self.radius), self.radius, 4)
+        pg.draw.circle(self.surface, self.color, (self.radius, self.radius), self.radius, 2)
 
     def animate_surface(self):
         surf = self.surface.copy()

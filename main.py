@@ -41,11 +41,13 @@ class Controller:
             self.clock.tick(self.frame_rate)
             self.get_events()
             state = self.screen.update()
-            if state is not None:
-                if isinstance(state, list):
-                    self.switch_state(state[0], state[1])
-                else:
-                    self.switch_state(state)
+            match state:
+                case None:
+                    pass
+                case [s, other]:
+                    self.switch_state(s, other)
+                case s:
+                    self.switch_state(s)
             self.screen.draw(self.window)
             self.blit_fps()
             self.display.blit(pg.transform.scale(self.window, config.SCALED_SIZE), (0, 0))

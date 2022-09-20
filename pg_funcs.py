@@ -35,7 +35,7 @@ def centred_text(text, font, centre_pos: tuple, color, return_offset=False):
     text_width, text_height = rect.size
     if return_offset:
         return text_surface, (- 0.5 * text_width, - 0.5 * text_height)
-    return text_surface, (centre_pos[0]-0.5*text_width, centre_pos[1]-0.5*text_height)
+    return [text_surface, (centre_pos[0]-0.5*text_width, centre_pos[1]-0.5*text_height)]
 
 
 def blit_text_object(surface, text_obj):

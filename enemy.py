@@ -22,7 +22,8 @@ class BaseEnemy:
         self.num_converge = 0
         self.dmg = dmg
         self.status_tick_timers = config.BASE_STATUS.copy()
-        self.status_tick_rate = config.FRAME_RATE
+        self.status_tick_rates = {k: config.FRAME_RATE if k != 'normal' else 0 for k in config.BASE_STATUS.keys()}
+        self.status_tick_rates['slow'] = config.FRAME_RATE*2
         self.type = "base"
         self.exp = 15
         self.drawn_quadrants = 10
@@ -32,34 +33,26 @@ class BaseEnemy:
         self.create_surface()
 
     def get_notification(self):
-        match len([0 for x in self.status_inflicted.values() if x != 0]):
-            case 0:
-                return [[], []]
-            case 1:
-                sys.stdout.flush()
-                return ([k for k, v in self.status_inflicted.items() if v != 0], [centred_text(self.calculate_status_dmg(key, val), config.FONTS['dmg notification'],
-                                     (self.pos.x + offset, self.pos.y), config.COLORS[key])
-                        for (key, val), offset in zip(self.status_inflicted.items(), [0]) if val != 0])
+        l = []
+        for key, val in self.status_inflicted.items():
+            if val != 0 and self.status_tick_timers[key] == self.status_tick_rates[key]:
+                l.append(centred_text(self.calculate_status_dmg(key, val), config.FONTS['dmg notification'],
+                             (self.pos.x, self.pos.y), config.COLORS[key]))
+        match len(l):
+            case 0 | 1:
+                pass
             case 2:
-                return ([k for k, v in self.status_inflicted.items() if v != 0],
-                        [centred_text(self.calculate_status_dmg(key, val), config.FONTS['dmg notification'],
-                                      (self.pos.x + offset, self.pos.y), config.COLORS[key])
-                         for (key, val), offset in zip(self.status_inflicted.items(), [-10, 10, 10, 10]) if val != 0])
-            case 3:
-                return ([k for k, v in self.status_inflicted.items() if v != 0],
-                        [centred_text(self.calculate_status_dmg(key, val), config.FONTS['dmg notification'],
-                                      (self.pos.x + offset, self.pos.y), config.COLORS[key])
-                         for (key, val), offset in zip(self.status_inflicted.items(), [-10, 10, 10, 10]) if val != 0])
-            case 4:
-                return [centred_text(self.calculate_status_dmg(key, val), config.FONTS['dmg notification'],
-                                     (self.pos.x + offset, self.pos.y),
-                                     config.COLORS[key])
-                        for (key, val), offset in zip(self.status_inflicted.items(), [-10]) if val != 0]
-            case 5:
-                return [centred_text(self.calculate_status_dmg(key, val), config.FONTS['dmg notification'],
-                                     (self.pos.x + offset, self.pos.y),
-                                     config.COLORS[key])
-                        for (key, val), offset in zip(self.status_inflicted.items(), [0]) if val != 0]
+                l[0][1], l[1][1] = (l[0][1][0] - 10, l[0][1][1]),  (l[1][1][0] - 10, l[1][1][1])
+            case _:
+                pass
+        return l
+
+    def set_inflicted(self):
+        self.status_inflicted['normal'] = 0
+        for key in self.status_inflicted:
+            if self.status_tick_timers[key] == self.status_tick_rates[key]:
+                if self.status_inflicted[key] != 0:
+                    self.status_inflicted[key] -= 1
 
     def add_dmg(self, dmg: dict):
         for key, val in dmg.items():
@@ -76,6 +69,8 @@ class BaseEnemy:
     def calculate_status_dmg(self, s, a):
         if s == 'normal':
             return round(self.status[s], 1)
+        elif s == 'slow':
+            return 0
         d = 3 + (self.status[s]*a - 1)
         return round(d, 1)
 
@@ -89,11 +84,9 @@ class BaseEnemy:
 
     def calculate_status(self):
         prev_hp = self.stats['hp']
-        for key, val in self.status_inflicted.items():
+        for key, val in self.status_inflicted.copy().items():
             if val != 0:
-                if key == "normal":
-                    self.stats['hp'] -= self.status['normal']
-                elif self.status_tick_timers[key] == self.status_tick_rate:
+                if self.status_tick_timers[key] == self.status_tick_rates[key]:
                     self.status_tick_timers[key] = 0
                     self.inflict_status(key, val)
                 else:
@@ -137,6 +130,7 @@ class BaseEnemy:
         else:
             self.pos.y += self.stats['speed'] * m / (m + 1)
         self.rect.update(self.pos.x - self.radius, self.pos.y - self.radius, self.radius*2, self.radius*2)
+        self.calculate_status()
 
     def create_surface(self, new_radius=False):
         if new_radius:

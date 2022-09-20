@@ -69,16 +69,9 @@ class GameScreen:
         for e in self.wave.enemies:
             e.calculate_status()
             if nots := e.get_notification():
-                for n in nots[1]:
+                for n in nots:
                     self.notifications.append([30, n])
-            e.status_inflicted['normal'] = 0
-            for key in e.status_inflicted:
-                if key == "normal":
-                    continue
-                else:
-                    if e.status_tick_timers[key] == e.status_tick_rate:
-                        if e.status_inflicted[key] != 0:
-                            e.status_inflicted[key] -= 1
+            e.set_inflicted()
         for exp in self.exp_points.copy():
             if abs(self.player.pos.x - exp.pos.x) < config.WIDTH // 2 and \
                     abs(self.player.pos.y - exp.pos.y) < config.HEIGHT // 2:
@@ -124,12 +117,14 @@ class PauseScreen:
     def __init__(self):
         self.screen = None
         self.next_state = None
-        self.pause_text, self.pause_pos = centred_text("paused...", config.FONTS['upgrade'],
-                                                       (config.WIDTH // 2, config.HEIGHT // 2),
+        self.drawn = False
+        self.pause_text, self.pause_pos = centred_text("Paused", config.FONTS['title'],
+                                                       (config.WIDTH // 2, config.HEIGHT // 2 - 100),
                                                        (255, 248, 220))
 
     def pre_switch(self, other):
         self.next_state = None
+        self.drawn = False
 
     def check_event(self, event):
         if event.type == pg.KEYDOWN:
@@ -144,8 +139,9 @@ class PauseScreen:
         return self.next_state
 
     def draw(self, surface):
-        surface.blit(self.screen, (0, 0))
-        surface.blit(self.pause_text, self.pause_pos)
+        if not self.drawn:
+            surface.blit(self.pause_text, self.pause_pos)
+            self.drawn = True
 
 
 class UpgradeScreen:
