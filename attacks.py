@@ -1,5 +1,7 @@
 import pygame as pg
 import json
+from math import sqrt
+from config import *
 from effects import AreaEffect
 
 
@@ -22,7 +24,7 @@ class Bullet:
         return pg.transform.scale2x(self.surface), (-2*self.radius, -2*self.radius)
 
     def update(self):
-        self.pos.update(self.pos.x + self.velocity.x, self.pos.y + self.velocity.y)
+        self.pos.update(self.pos.x + self.velocity.x//Config.GAME_SPEED, self.pos.y + self.velocity.y//Config.GAME_SPEED)
         self.rect = pg.Rect(self.pos.x - self.radius, self.pos.y - self.radius, 2 * self.radius, 2 * self.radius)
 
     def create_surface(self):
@@ -39,7 +41,7 @@ class StatusBomb:
         self.target = pg.Vector2(target_x, target_y)
         self.velocity = velocity
         self.time = self.pos.distance_to(self.target) // self.velocity.magnitude()
-        self.state = 0
+        self.state = 0 if self.time != 0 else 1
         self.color = color
         self.radius = radius
         self.other_radius = other_radius
@@ -90,4 +92,64 @@ class StatusBomb:
             win.blit(self.other_surface.surface, (x - self.other_radius, y - self.other_radius))
 
 
-ALL_ATTACKS = {'Bullet': Bullet, "StatusBomb": StatusBomb}
+class Beam:
+    def __init__(self, x, y, target_x, target_y, dmg, color, width):
+        self.pos = pg.Vector2(x, y)
+        self.target = pg.Vector2(target_x, target_y)
+        self.time = 0
+        self.state = 0
+        self.color = color
+        self.width = width
+        self.hw = width // 2
+        self.dmg = {key: val for key, val in dmg.items() if key != "normal"}
+        self.dmg_tick = 0
+
+    def check_collision(self, pos, radius):
+        # line point collision <= radius + line width
+        if pos.x != 0:
+            m = abs(pos.y / pos.x)
+        else:
+            m = 1000
+        return radius + self.width <= abs(m*pos.x + pos.y)/sqrt(pos.x**2 + pos.y**2)
+
+    def update(self):
+        match self.state:
+            case 1:
+                self.dmg_tick += 1
+        self.time += 1
+        if self.time % 60 == 0:
+            self.state += 1
+        if self.state == 0:
+            self.pos.update(self.pos.x + self.velocity.x, self.pos.y + self.velocity.y)
+            self.time += 1
+            if self.time == 60:
+                self.state = 1
+        elif self.state == 1:
+            self.time += 1
+            self.dmg_tick += 1
+            if self.time == 120:
+                self.state = 2
+        else:
+            self.time += 1
+            self.dmg_tick += 1
+            if self.time == 150:
+                self.state = 2
+
+    def get_dmg(self):
+        if self.dmg_tick % 2 == 1:
+            return self.dmg
+        else:
+            return {}
+
+    def draw(self, win, camera):
+        x, y = camera.object_pos(self.pos.x, self.pos.y)
+        match self.state:
+            case 0:
+                pass
+            case 1:
+                pass
+            case 2:
+                pass
+
+
+ALL_ATTACKS = {'Bullet': Bullet, "StatusBomb": StatusBomb, "Beam": Beam}

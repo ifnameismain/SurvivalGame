@@ -49,8 +49,8 @@ class GameScreen:
         self.wave.converge()
         self.player.stats['hp'] -= len(self.player.rect.collidelistall([e.rect for e in self.wave.enemies]))
         for bullet in self.player.casts.copy():
-            if abs(bullet.pos.x - self.player.pos.x) > config.WIDTH // 2 or \
-                    abs(bullet.pos.y - self.player.pos.y) > config.HEIGHT // 2:
+            if abs(bullet.pos.x - self.player.pos.x) > Config.WIDTH // 2 or \
+                    abs(bullet.pos.y - self.player.pos.y) > Config.HEIGHT // 2:
                 self.player.casts.remove(bullet)
                 continue
             for e in self.wave.enemies:
@@ -66,6 +66,11 @@ class GameScreen:
                     elif bullet.state == 2:
                         self.player.casts.remove(bullet)
                         break
+                elif isinstance(bullet, Beam):
+                    if bullet.state == 1:
+                        if bullet.check_collision(self.camera.player_relative(e.pos.x, e.pos.y), e.radius):
+                            e.add_dmg(bullet.get_dmg())
+
         for e in self.wave.enemies:
             e.calculate_status()
             if nots := e.get_notification():
@@ -73,10 +78,10 @@ class GameScreen:
                     self.notifications.append([30, n])
             e.set_inflicted()
         for exp in self.exp_points.copy():
-            if abs(self.player.pos.x - exp.pos.x) < config.WIDTH // 2 and \
-                    abs(self.player.pos.y - exp.pos.y) < config.HEIGHT // 2:
+            if abs(self.player.pos.x - exp.pos.x) < Config.WIDTH // 2 and \
+                    abs(self.player.pos.y - exp.pos.y) < Config.HEIGHT // 2:
                 exp.drawable = True
-                if exp.rect.colliderect(self.player.rect):
+                if self.player.rect.colliderect(exp.rect):
                     if self.player.add_exp(exp.value):
                         self.next_state = 'upgrade'
                     self.exp_points.remove(exp)
@@ -118,8 +123,8 @@ class PauseScreen:
         self.screen = None
         self.next_state = None
         self.drawn = False
-        self.pause_text, self.pause_pos = centred_text("Paused", config.FONTS['title'],
-                                                       (config.WIDTH // 2, config.HEIGHT // 2 - 100),
+        self.pause_text, self.pause_pos = centred_text("Paused", Config.FONTS['title'],
+                                                       (Config.WIDTH // 2, Config.HEIGHT // 2 - 100),
                                                        (255, 248, 220))
 
     def pre_switch(self, other):
@@ -150,8 +155,8 @@ class UpgradeScreen:
         self.upgrade_cards = []
         self.get_upgrade_cards()
         self.next_state = None
-        self.upgrade_text, self.upgrade_pos = centred_text("Choose Upgrade...", config.FONTS['upgrade'],
-                                                           (config.WIDTH//2, 50), (255, 248, 220))
+        self.upgrade_text, self.upgrade_pos = centred_text("Choose Upgrade...", Config.FONTS['upgrade'],
+                                                           (Config.WIDTH//2, 50), (255, 248, 220))
 
     def pre_switch(self, other):
         self.next_state = None
@@ -159,7 +164,7 @@ class UpgradeScreen:
 
     def get_upgrade_cards(self):
         # do something here. probably random
-        self.upgrade_cards = [UpgradeCard((x * config.WIDTH//6) - UpgradeCard.width // 2, 100) for x in [2, 3, 4]]
+        self.upgrade_cards = [UpgradeCard((x * Config.WIDTH//6) - UpgradeCard.width // 2, 100) for x in [2, 3, 4]]
 
     def check_event(self, event):
         if event.type == pg.MOUSEBUTTONDOWN:
@@ -204,7 +209,7 @@ class SettingsScreen:
 
     def draw(self, surface):
         self.game.draw(surface)
-        surface.blit(self.title_card, (config.WIDTH//2-300, 125))
+        surface.blit(self.title_card, (Config.WIDTH//2-300, 125))
         surface.blit(self.title_text, self.title_pos)
         surface.blit(self.space_text, self.space_pos)
 
@@ -214,10 +219,10 @@ class MenuScreen:
         self.next_state = None
         self.game = SimGame()
         self.title_card = create_card(600, 150, 15)
-        self.title_text, self.title_pos = centred_text("Survival", config.FONTS['title'],
-                                                       (config.WIDTH//2, 200), (255, 248, 220))
-        self.space_text, self.space_pos = centred_text("Press Space to Start", config.FONTS['upgrade'],
-                                                       (config.WIDTH // 2, 400), (255, 248, 220))
+        self.title_text, self.title_pos = centred_text("Survival", Config.FONTS['title'],
+                                                       (Config.WIDTH//2, 200), (255, 248, 220))
+        self.space_text, self.space_pos = centred_text("Press Space to Start", Config.FONTS['upgrade'],
+                                                       (Config.WIDTH // 2, 400), (255, 248, 220))
 
     def pre_switch(self, other):
         self.next_state = None
@@ -238,7 +243,7 @@ class MenuScreen:
 
     def draw(self, surface):
         self.game.draw(surface)
-        surface.blit(self.title_card, (config.WIDTH//2-300, 125))
+        surface.blit(self.title_card, (Config.WIDTH//2-300, 125))
         surface.blit(self.title_text, self.title_pos)
         surface.blit(self.space_text, self.space_pos)
 
@@ -278,8 +283,8 @@ class SimGame:
         self.wave.converge()
         self.player.stats['hp'] -= len(self.player.rect.collidelistall([e.rect for e in self.wave.enemies]))
         for bullet in self.player.casts.copy():
-            if abs(bullet.pos.x - self.player.pos.x) > config.WIDTH // 2 or \
-                    abs(bullet.pos.y - self.player.pos.y) > config.HEIGHT // 2:
+            if abs(bullet.pos.x - self.player.pos.x) > Config.WIDTH // 2 or \
+                    abs(bullet.pos.y - self.player.pos.y) > Config.HEIGHT // 2:
                 self.player.casts.remove(bullet)
                 continue
             for e in self.wave.enemies.copy():
@@ -288,8 +293,8 @@ class SimGame:
                     self.player.casts.remove(bullet)
                     break
         for exp in self.exp_points.copy():
-            if abs(self.player.pos.x - exp.pos.x) < config.WIDTH // 2 and \
-                    abs(self.player.pos.y - exp.pos.y) < config.HEIGHT // 2:
+            if abs(self.player.pos.x - exp.pos.x) < Config.WIDTH // 2 and \
+                    abs(self.player.pos.y - exp.pos.y) < Config.HEIGHT // 2:
                 exp.drawable = True
                 if exp.rect.colliderect(self.player.rect):
                     if self.player.add_exp(exp.value):

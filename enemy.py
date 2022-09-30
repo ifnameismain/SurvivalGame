@@ -1,6 +1,6 @@
 import random
 from math import atan2, pi, sin, cos, sqrt
-import config
+from config import *
 from pg_funcs import *
 import sys
 
@@ -15,15 +15,16 @@ class BaseEnemy:
         self.previous_pos = pg.Vector2(x, y)
         self.vel = pg.Vector2(x, y)
         self.stats = {"max hp": hp, "hp": hp, "dmg": dmg, "hp percentage": 1, "base speed": speed, "speed": speed}
-        self.status = config.BASE_STATUS.copy()
+        self.status = Config.BASE_STATUS.copy()
         self.status_inflicted = self.status.copy()
         self.timer = 0
         self.max_time = 15
         self.num_converge = 0
         self.dmg = dmg
-        self.status_tick_timers = config.BASE_STATUS.copy()
-        self.status_tick_rates = {k: config.FRAME_RATE if k != 'normal' else 0 for k in config.BASE_STATUS.keys()}
-        self.status_tick_rates['slow'] = config.FRAME_RATE*2
+        self.gradient = 0
+        self.status_tick_timers = Config.BASE_STATUS.copy()
+        self.status_tick_rates = {k: Config.FRAME_RATE if k != 'normal' else 0 for k in Config.BASE_STATUS.keys()}
+        self.status_tick_rates['slow'] = Config.FRAME_RATE*2
         self.type = "base"
         self.exp = 15
         self.drawn_quadrants = 10
@@ -35,16 +36,18 @@ class BaseEnemy:
     def get_notification(self):
         l = []
         for key, val in self.status_inflicted.items():
-            if val != 0 and self.status_tick_timers[key] == self.status_tick_rates[key]:
-                l.append(centred_text(self.calculate_status_dmg(key, val), config.FONTS['dmg notification'],
-                             (self.pos.x, self.pos.y), config.COLORS[key]))
+            if self.status_tick_timers[key] == self.status_tick_rates[key]:
+                if key != 'slow' and val != 0:
+                    l.append(centred_text(self.calculate_status_dmg(key, val), Config.FONTS['dmg_notification'],
+                                 (self.pos.x, self.pos.y), Config.COLORS[key]))
         match len(l):
-            case 0 | 1:
+            case 0:
                 pass
-            case 2:
-                l[0][1], l[1][1] = (l[0][1][0] - 10, l[0][1][1]),  (l[1][1][0] - 10, l[1][1][1])
             case _:
-                pass
+                offset = - 20 * (len(l) - 1)/2
+                for i in l:
+                    i[1] = (i[1][0] - offset, i[1][1])
+                    offset += 20
         return l
 
     def set_inflicted(self):
@@ -108,27 +111,27 @@ class BaseEnemy:
         self.create_surface(new_radius=True)
 
     def update(self, player_pos):
-        if self.pos.x + self.radius > player_pos.x + config.WIDTH // 2 or self.pos.x - self.radius < player_pos.x - config.WIDTH // 2:
+        if self.pos.x + self.radius > player_pos.x + Config.WIDTH // 2 or self.pos.x - self.radius < player_pos.x - Config.WIDTH // 2:
             self.drawable = False
-        elif self.pos.y + self.radius > player_pos.y + config.HEIGHT // 2 or self.pos.y - self.radius < player_pos.y - config.HEIGHT // 2:
+        elif self.pos.y + self.radius > player_pos.y + Config.HEIGHT // 2 or self.pos.y - self.radius < player_pos.y - Config.HEIGHT // 2:
             self.drawable = False
         else:
             self.drawable = False
         rise = player_pos.y - self.pos.y
         run = player_pos.x - self.pos.x
         if run != 0:
-            m = abs(rise/run)
+            self.gradient = abs(rise/run)
         else:
-            m = 1000
+            self.gradient = 1000
         self.previous_pos.update(self.pos.x, self.pos.y)
         if self.pos.x > player_pos.x:
-            self.pos.x -= self.stats['speed'] / (m + 1)
+            self.pos.x -= self.stats['speed'] / (self.gradient + 1)
         else:
-            self.pos.x += self.stats['speed'] / (m + 1)
+            self.pos.x += self.stats['speed'] / (self.gradient + 1)
         if self.pos.y > player_pos.y:
-            self.pos.y -= self.stats['speed'] * m / (m + 1)
+            self.pos.y -= self.stats['speed'] * self.gradient / (self.gradient + 1)
         else:
-            self.pos.y += self.stats['speed'] * m / (m + 1)
+            self.pos.y += self.stats['speed'] * self.gradient / (self.gradient + 1)
         self.rect.update(self.pos.x - self.radius, self.pos.y - self.radius, self.radius*2, self.radius*2)
         self.calculate_status()
 
@@ -146,7 +149,7 @@ class BaseEnemy:
         self.surface.blit(surf_2, (0, 0), special_flags=pg.BLEND_RGB_MIN)
         pg.draw.circle(self.surface, (255, 255, 255), (self.radius, self.radius), self.radius, width=1)
         if self.num_converge != 0:
-            text, pos = centred_text(str(self.num_converge), config.FONTS['dmg notification'], (self.radius, self.radius), (255,255,255))
+            text, pos = centred_text(str(self.num_converge), Config.FONTS['dmg notification'], (self.radius, self.radius), (255,255,255))
             self.surface.blit(text, pos)
 
     def draw(self, win, camera):
@@ -245,14 +248,14 @@ class MageEnemy:
         self.previous_pos = pg.Vector2(x, y)
         self.vel = pg.Vector2(x, y)
         self.stats = {"max hp": hp, "hp": hp, "dmg": dmg, "hp percentage": 1, "base speed": speed, "speed": speed}
-        self.status = config.BASE_STATUS.copy()
+        self.status = Config.BASE_STATUS.copy()
         self.timer = 0
         self.max_time = 15
         self.num_converge = 0
         self.dmg = dmg
         self.kite = False
-        self.status_tick_timers = config.BASE_STATUS.copy()
-        self.status_tick_rate = config.FRAME_RATE//2
+        self.status_tick_timers = Config.BASE_STATUS.copy()
+        self.status_tick_rate = Config.FRAME_RATE//2
         self.type = "base"
         self.exp = 15
         self.drawn_quadrants = 4
@@ -310,11 +313,11 @@ class MageEnemy:
         self.create_surface(new_radius=True)
 
     def update(self, player_pos):
-        if self.pos.x + self.radius > player_pos.x + config.WIDTH // 2 or self.pos.x - self.radius < player_pos.x - config.WIDTH // 2:
+        if self.pos.x + self.radius > player_pos.x + Config.WIDTH // 2 or self.pos.x - self.radius < player_pos.x - Config.WIDTH // 2:
             self.drawable = False
             if random.uniform(0, 1) < 0.02:
                 self.kite = True
-        elif self.pos.y + self.radius > player_pos.y + config.HEIGHT // 2 or self.pos.y - self.radius < player_pos.y - config.HEIGHT // 2:
+        elif self.pos.y + self.radius > player_pos.y + Config.HEIGHT // 2 or self.pos.y - self.radius < player_pos.y - Config.HEIGHT // 2:
             self.drawable = False
             if random.uniform(0, 1) < 0.02:
                 self.kite = True
@@ -352,7 +355,7 @@ class MageEnemy:
         self.surface.blit(surf_2, (0, 0), special_flags=pg.BLEND_RGB_MIN)
         pg.draw.circle(self.surface, (255, 255, 255), (self.radius, self.radius), self.radius, width=1)
         if self.num_converge != 0:
-            text, pos = centred_text(str(self.num_converge), config.FONTS['dmg notification'], (self.radius, self.radius), (255,255,255))
+            text, pos = centred_text(str(self.num_converge), Config.FONTS['dmg notification'], (self.radius, self.radius), (255,255,255))
             self.surface.blit(text, pos)
 
     def draw(self, win, camera):

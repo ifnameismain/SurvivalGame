@@ -1,4 +1,4 @@
-import config
+from config import *
 from math import sqrt, sin, cos, radians, atan, pi
 from pg_funcs import *
 from attacks import *
@@ -7,28 +7,27 @@ from attacks import *
 class Player:
     def __init__(self, x, y):
         self.pos = pg.Vector2(x, y)
-        self.w, self.hw = config.PLAYER_WIDTH, config.PLAYER_WIDTH//2
+        self.w, self.hw = Config.PLAYER_WIDTH, Config.PLAYER_WIDTH//2
         self.rect = pg.Rect(self.pos.x-self.hw, self.pos.y-self.hw, self.w, self.w)
         self.color = (33, 217, 239)
         self.border = (255, 255, 255)
         self.rotation = 0
         self.vel = pg.Vector2(x, y)
-        self.stats = {"hp": 100, "max hp": 100, "speed": 2, "attack speed": 1, "flat dmg": 0,
+        self.stats = {"hp": 100, "max hp": 100, "speed": 2*Config.GAME_SPEED, "attack speed": 1, "flat dmg": 0,
                       "% damage": 1, "flat status": 0, "% status": 1, "lvl": 1, "exp": 0}
         self.internals = {"dash cd": 1.5, "dash": 0.2, "dash timer": 0, "dash cd timer": 0}
-        self.controls = {'left': pg.K_a, 'right': pg.K_d, 'up': pg.K_w, 'down': pg.K_s,
-                         'dash': pg.K_SPACE}
+        self.controls = Config.CONTROLS['player']
         self.move_state = {control: False for control in self.controls.values()}
         self.dmg_notification = {}
         self.attacks = {}
-        self.register_attack('Bullet')
+        self.register_attack('Fire Bomb')
         self.casts = []
         self.exp_percentage = 0
         self.surface = pg.Surface((self.w, self.w))
         self.create_surface()
 
     def modify_stats(self, stat):
-        s = config.UPGRADES['player'][stat]
+        s = Config.UPGRADES['player'][stat]
         self.stats[s['stat']] += s['amount']
         if s['stat'] == "max hp":
             self.stats["hp"] += s['amount']
@@ -41,9 +40,9 @@ class Player:
         pass
 
     def register_upgrade(self, upgrade):
-        if upgrade in config.UPGRADES['attacks'].keys():
+        if upgrade in Config.UPGRADES['attacks'].keys():
             self.register_attack(upgrade)
-        elif upgrade in config.UPGRADES['player'].keys():
+        elif upgrade in Config.UPGRADES['player'].keys():
             self.modify_stats(upgrade)
         else:
             self.modify_attacks(upgrade)
@@ -59,8 +58,8 @@ class Player:
         return False
 
     def get_dash_status(self):
-        return (self.internals['dash cd'] * config.FRAME_RATE - self.internals['dash cd timer'])/(
-                self.internals['dash cd'] * config.FRAME_RATE
+        return (self.internals['dash cd'] * Config.FRAME_RATE - self.internals['dash cd timer'])/(
+                self.internals['dash cd'] * Config.FRAME_RATE
         )
 
     def handle_key_press(self, key, down):
@@ -91,8 +90,8 @@ class Player:
         if self.move_state[self.controls['dash']] and self.internals['dash cd timer'] == 0:
             self.vel.x *= 4
             self.vel.y *= 4
-            self.internals['dash cd timer'] = self.internals['dash cd'] * config.FRAME_RATE
-            self.internals['dash timer'] = self.internals['dash'] * config.FRAME_RATE
+            self.internals['dash cd timer'] = self.internals['dash cd'] * Config.FRAME_RATE
+            self.internals['dash timer'] = self.internals['dash'] * Config.FRAME_RATE
 
         if self.vel.x != 0 and self.vel.y != 0:
             self.vel.x /= sqrt(2)
@@ -104,16 +103,16 @@ class Player:
     def attack(self, camera):
         base_velocity = None
         for attack_type, attack in self.attacks.items():
-            if attack['timer'] == attack['cd'] * config.FRAME_RATE:
+            if attack['timer'] == attack['cd'] * Config.FRAME_RATE//Config.GAME_SPEED:
                 if base_velocity is None:
                     self.calculate_angle()
                     base_velocity = pg.Vector2(cos(radians(self.rotation)), sin(radians(self.rotation)))
                 if attack['class'] == "Bullet":
-                    velocity = pg.Vector2(base_velocity.x * attack['speed'], base_velocity.y * attack['speed'])
+                    velocity = pg.Vector2(base_velocity.x * attack['speed'] * Config.GAME_SPEED, base_velocity.y * Config.GAME_SPEED* attack['speed'])
                     self.casts.append(ALL_ATTACKS[attack['class']](self.pos.x, self.pos.y, velocity,
                                       dmg=attack['dmg dict'], **attack['inits']))
                 else:
-                    velocity = pg.Vector2(base_velocity.x * attack['speed'], base_velocity.y * attack['speed'])
+                    velocity = pg.Vector2(base_velocity.x * attack['speed']* Config.GAME_SPEED, base_velocity.y * attack['speed']* Config.GAME_SPEED)
                     self.casts.append(ALL_ATTACKS[attack['class']](self.pos.x, self.pos.y,
                                                                    *camera.player_relative(*get_mouse()), velocity,
                                                                    dmg=attack['dmg dict'], **attack['inits']))
@@ -130,7 +129,7 @@ class Player:
 
     def calculate_angle(self):
         mx, my = get_mouse()
-        x, y = mx - config.WIDTH//2, my - config.HEIGHT//2
+        x, y = mx - Config.WIDTH//2, my - Config.HEIGHT//2
         if y < 0:
             self.rotation = 270 - (atan((x / y)) * 180 / pi)
         elif y > 0:
@@ -159,7 +158,7 @@ class Player:
                 self.attacks[key]['dmg dict'][status + " chance"] = self.attacks[key]["chance"]
 
     def register_attack(self, attack):
-        self.attacks[attack] = config.UPGRADES['attacks'][attack]
+        self.attacks[attack] = Config.UPGRADES['attacks'][attack]
         self.attacks[attack]['timer'] = 0
         self.update_attacks(attack)
 
@@ -197,15 +196,16 @@ class Crosshair:
 
 
 class ExpPoint:
-    point = pg.Surface((8, 8))
-    pg.draw.circle(point, (135, 206, 250), (4, 4), 4)
+    point = pg.Surface((2*Config.EXP_SIZE, 2*Config.EXP_SIZE))
+    pg.draw.circle(point, (135, 206, 250), (Config.EXP_SIZE, Config.EXP_SIZE), Config.EXP_SIZE)
     point.set_colorkey((0, 0, 0))
 
     def __init__(self, x, y, value):
         self.pos = pg.Vector2(x, y)
         self.value = value
+        self.radius = Config.EXP_SIZE
         self.drawable = False
-        self.rect = pg.Rect(x-4, y-4, 8, 8)
+        self.rect = pg.Rect(x-Config.EXP_SIZE, y-Config.EXP_SIZE, 2*Config.EXP_SIZE, 2*Config.EXP_SIZE)
 
     def draw(self, win, camera):
         win.blit(ExpPoint.point, camera.object_pos(self.pos.x - 4, self.pos.y - 4))

@@ -1,5 +1,5 @@
 import pygame as pg
-import config
+from config import *
 
 
 class AreaEffect:
@@ -32,7 +32,7 @@ class AreaEffect:
 
     def animate_surface(self):
         surf = self.surface.copy()
-        surf.set_alpha(255 * config.STATUS_ALPHA)
+        surf.set_alpha(255 * Config.STATUS_ALPHA)
         return surf
 
     def draw(self, win, camera):

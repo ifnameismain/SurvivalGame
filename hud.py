@@ -1,5 +1,5 @@
 import random
-import config
+from config import *
 from pg_funcs import *
 from attacks import *
 
@@ -8,7 +8,7 @@ class StatusBar:
     def __init__(self, x, y, length, width, color):
         self.width = width
         self.length = length
-        self.outline = config.COLORS['outline']
+        self.outline = Config.COLORS['outline']
         self.background = (0, 0, 0)
         self.pos = pg.Vector2(x, y)
         self.color = color
@@ -89,15 +89,15 @@ class StatusCircle:
 class UpgradeCard:
     width, height = 180, 320
     card = create_card(width, height, 10, color=(150, 150, 150))
-    pg.draw.rect(card, config.BACKGROUND, (width//3, 160-(width//2 - width//3), width//3, width//3))
+    pg.draw.rect(card, Config.BACKGROUND, (width//3, 160-(width//2 - width//3), width//3, width//3))
     pg.draw.rect(card, (255, 255, 255), (width//3, 160-(width//2 - width//3), width//3, width//3), 1)
 
     def __init__(self, x, y):
         self.x, self.y = x, y
-        self.type = random.choice([key for key in config.UPGRADES.keys()])
+        self.type = random.choice([key for key in Config.UPGRADES.keys()])
         self.corner_radius = 6
-        self.info_key = random.choice([key for key in config.UPGRADES[self.type].keys()])
-        self.info = config.UPGRADES[self.type][self.info_key]
+        self.info_key = random.choice([key for key in Config.UPGRADES[self.type].keys()])
+        self.info = Config.UPGRADES[self.type][self.info_key]
         if self.type == "attacks":
             if self.info['class'] == "Bullet":
                 self.image, self.image_pos = ALL_ATTACKS[self.info['class']](
@@ -107,21 +107,21 @@ class UpgradeCard:
                     0, 0, 0, 0, pg.Vector2(1, 1), dmg={}, **self.info['inits']).get_image()
             self.image_pos = (self.x + self.image_pos[0] + self.width//2, self.y + 160 + self.image_pos[1])
 
-        self.name, self.name_pos = centred_text(self.info_key, config.FONTS['name'], (self.x + self.width//2, self.y + 50),
+        self.name, self.name_pos = centred_text(self.info_key, Config.FONTS['name'], (self.x + self.width//2, self.y + 50),
                                                 (255, 248, 220))
-        self.typ, self.typ_pos = centred_text(self.info['type'], config.FONTS['type'],
+        self.typ, self.typ_pos = centred_text(self.info['type'], Config.FONTS['type'],
                                               (self.x + self.width // 2, self.y + 90),
                                               (205, 92, 92))
         if self.type == "attacks":
-            self.dmg, self.dmg_pos = centred_text(f"{self.info['dmg']} / {self.info['cd']}s", config.FONTS['name'],
+            self.dmg, self.dmg_pos = centred_text(f"{self.info['dmg']} / {self.info['cd']}s", Config.FONTS['name'],
                                                   (self.x + self.width // 2, self.y + 250),
                                                   (205, 92, 92))
             if "status" in self.info:
-                self.status, self.status_pos = centred_text(f"+ {self.info['status']}", config.FONTS['type'],
+                self.status, self.status_pos = centred_text(f"+ {self.info['status']}", Config.FONTS['type'],
                                                   (self.x + self.width // 2, self.y + 290),
                                                   self.info['inits']['color'])
         elif self.type == "player":
-            self.dmg, self.dmg_pos = centred_text(f"+ {self.info['amount']}", config.FONTS['name'],
+            self.dmg, self.dmg_pos = centred_text(f"+ {self.info['amount']}", Config.FONTS['name'],
                                                   (self.x + self.width // 2, self.y + 260),
                                                   (205, 92, 92))
         else:
@@ -162,10 +162,10 @@ class StatusSquare:
 
     def create_surface(self):
         self.surface.fill((0, 0, 0))
-        pg.draw.rect(self.surface, config.COLORS['outline'], (0, self.width * (1 - self.percentage),
+        pg.draw.rect(self.surface, Config.COLORS['outline'], (0, self.width * (1 - self.percentage),
                                                               self.width, self.width * self.percentage))
         # outline
-        pg.draw.rect(self.surface, config.COLORS['outline'], (0, 0, self.width, self.width), 1)
+        pg.draw.rect(self.surface, Config.COLORS['outline'], (0, 0, self.width, self.width), 1)
 
     def draw(self, win):
         win.blit(self.surface, self.pos)

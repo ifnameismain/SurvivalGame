@@ -57,8 +57,8 @@ def create_button(pos, size, color=pg.color.Color('white'),
 
 
 def get_mouse():
-    from config import SCALED_SIZE, UNSCALED_SIZE
-    pos = tuple(p * UNSCALED_SIZE[i]/SCALED_SIZE[i] for i, p in enumerate(pg.mouse.get_pos()))
+    from config import Config
+    pos = tuple(p * Config.UNSCALED_SIZE[i]/Config.SCALED_SIZE[i] for i, p in enumerate(pg.mouse.get_pos()))
     return pos
 
 
