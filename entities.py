@@ -15,12 +15,12 @@ class Player:
         self.vel = pg.Vector2(x, y)
         self.stats = {"hp": 100, "max hp": 100, "speed": 2*Config.GAME_SPEED, "attack speed": 1, "flat dmg": 0,
                       "% damage": 1, "flat status": 0, "% status": 1, "lvl": 1, "exp": 0}
-        self.internals = {"dash cd": 1.5, "dash": 0.2, "dash timer": 0, "dash cd timer": 0}
+        self.internals = {"dash cd": 1.5, "dash": 0.15, "dash timer": 0, "dash cd timer": 0}
         self.controls = Config.CONTROLS['player']
         self.move_state = {control: False for control in self.controls.values()}
         self.dmg_notification = {}
         self.attacks = {}
-        self.register_attack('Fire Bomb')
+        self.register_attack('Poison Bomb')
         self.casts = []
         self.exp_percentage = 0
         self.surface = pg.Surface((self.w, self.w))
@@ -39,23 +39,22 @@ class Player:
     def modify_attacks(self, stat):
         pass
 
-    def register_upgrade(self, upgrade):
-        if upgrade in Config.UPGRADES['attacks'].keys():
-            self.register_attack(upgrade)
-        elif upgrade in Config.UPGRADES['player'].keys():
-            self.modify_stats(upgrade)
-        else:
-            self.modify_attacks(upgrade)
+    def register_upgrade(self, upgrades: list):
+        for upgrade in upgrades:
+            if upgrade in Config.UPGRADES['attacks'].keys():
+                self.register_attack(upgrade)
+            elif upgrade in Config.UPGRADES['player'].keys():
+                self.modify_stats(upgrade)
+            else:
+                self.modify_attacks(upgrade)
 
     def add_exp(self, value):
         self.stats['exp'] += value
-        if self.stats['exp'] >= self.stats['lvl'] * 5 + 10:
+        while self.stats['exp'] >= self.stats['lvl'] * 5 + 10:
             self.stats['exp'] -= self.stats['lvl'] * 5 + 10
             self.stats['lvl'] += 1
             self.exp_percentage = self.stats['exp'] / (self.stats['lvl'] * 5 + 10)
-            return True 
         self.exp_percentage = self.stats['exp']/(self.stats['lvl'] * 5 + 10)
-        return False
 
     def get_dash_status(self):
         return (self.internals['dash cd'] * Config.FRAME_RATE - self.internals['dash cd timer'])/(

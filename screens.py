@@ -20,7 +20,7 @@ class GameScreen:
         self.notifications = []
 
     def pre_switch(self, upgrade):
-        if upgrade is not None:
+        if upgrade not in [None, True]:
             self.player.register_upgrade(upgrade)
         self.next_state = None
         self.player.move_state = {control: False for control in self.player.controls.values()}
@@ -77,17 +77,19 @@ class GameScreen:
                 for n in nots:
                     self.notifications.append([30, n])
             e.set_inflicted()
+        prev_lvl = self.player.stats['lvl']
         for exp in self.exp_points.copy():
             if abs(self.player.pos.x - exp.pos.x) < Config.WIDTH // 2 and \
                     abs(self.player.pos.y - exp.pos.y) < Config.HEIGHT // 2:
                 exp.drawable = True
                 if self.player.rect.colliderect(exp.rect):
-                    if self.player.add_exp(exp.value):
-                        self.next_state = 'upgrade'
+                    self.player.add_exp(exp.value)
                     self.exp_points.remove(exp)
                     continue
             else:
                 exp.drawable = False
+        if self.player.stats['lvl'] != prev_lvl:
+            self.next_state = ['upgrade', self.player.stats['lvl'] - prev_lvl]
         self.hud.update(self.player.stats['hp'] / self.player.stats['max hp'],
                         self.player.exp_percentage, self.player.get_dash_status(),
                         self.wave.num, self.wave.wave_time, [])
@@ -155,11 +157,14 @@ class UpgradeScreen:
         self.upgrade_cards = []
         self.get_upgrade_cards()
         self.next_state = None
+        self.lvl_amount = 0
         self.upgrade_text, self.upgrade_pos = centred_text("Choose Upgrade...", Config.FONTS['upgrade'],
                                                            (Config.WIDTH//2, 50), (255, 248, 220))
+        self.chosen_cards = []
 
-    def pre_switch(self, other):
+    def pre_switch(self, lvl_amount):
         self.next_state = None
+        self.lvl_amount = lvl_amount
         self.get_upgrade_cards()
 
     def get_upgrade_cards(self):
@@ -172,7 +177,10 @@ class UpgradeScreen:
                 x, y = get_mouse()
                 for card in self.upgrade_cards:
                     if card.x < x < card.x + card.width and card.y < y < card.y + card.height:
-                        self.next_state = ["game", card.info_key]
+                        self.lvl_amount -= 1
+                        self.chosen_cards.append(card.info_key)
+                        if self.lvl_amount == 0:
+                            self.next_state = ["game", self.chosen_cards]
 
     def update(self):
         for event in pg.event.get():
