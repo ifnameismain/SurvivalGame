@@ -70,8 +70,7 @@
     "status": "burn",
     "chance": 1,
     "inits": {
-      "radius": 6,
-      "other_radius": 120
+      "radius": 6
     },
     "type": "projectile",
     "description": "Fire type AOE bomb. Inflicts burn"
@@ -84,8 +83,7 @@
     "status": "slow",
     "chance": 1,
     "inits": {
-      "radius": 6,
-      "other_radius": 80
+      "radius": 6
     },
     "type": "projectile",
     "description": "Ice type AOE bomb. Inflicts slow"
@@ -98,8 +96,7 @@
     "status": "poison",
     "chance": 1,
     "inits": {
-      "radius": 6,
-      "other_radius": 80
+      "radius": 6
     },
     "type": "projectile",
     "description": "Poison type AOE bomb. Inflicts poison"
@@ -112,9 +109,7 @@
     "status": "bleed",
     "chance": 1,
     "inits": {
-      "radius": 6,
-      "other_radius": 80
-    },
+      "radius": 6},
     "type": "projectile",
     "description": "Blood type AOE bomb. Inflicts bleed"
   }

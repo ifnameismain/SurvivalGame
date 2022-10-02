@@ -104,7 +104,7 @@ class UpgradeCard:
                     0, 0, pg.Vector2(1, 1), dmg=None, **self.info['inits']).get_image()
             else:
                 self.image, self.image_pos = ALL_ATTACKS[self.info['class']](
-                    0, 0, 0, 0, pg.Vector2(1, 1), dmg={}, **self.info['inits']).get_image()
+                    0, 0, 0, 0, pg.Vector2(1, 1), dmg={}, **self.info['inits'], bomb_type=self.info_key).get_image()
             self.image_pos = (self.x + self.image_pos[0] + self.width//2, self.y + 160 + self.image_pos[1])
 
         self.name, self.name_pos = centred_text(self.info_key, Config.FONTS['name'], (self.x + self.width//2, self.y + 50),

@@ -48,5 +48,3 @@ class Config:
             attack['inits']['color'] = COLORS[attack['status']]
         else:
             attack['inits']['color'] = COLORS["normal"]
-        if attack['class'] in ["StatusBomb"]:
-            attack['inits']['alt_color'] = COLORS[attack['status']]

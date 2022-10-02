@@ -115,7 +115,7 @@ class Player:
                     velocity = pg.Vector2(base_velocity.x * attack['speed'] * Config.GAME_SPEED, base_velocity.y * attack['speed']* Config.GAME_SPEED)
                     self.casts.append(ALL_ATTACKS[attack['class']](self.pos.x, self.pos.y,
                                                                    *camera.player_relative(*get_mouse()), velocity,
-                                                                   dmg=attack['dmg dict'], **attack['inits']))
+                                                                   dmg=attack['dmg dict'], bomb_type=attack_type, **attack['inits']))
                 attack['timer'] = 0
             else:
                 attack['timer'] += 1

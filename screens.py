@@ -61,7 +61,7 @@ class GameScreen:
                         break
                 elif isinstance(bullet, StatusBomb):
                     if bullet.state == 1:
-                        if bullet.pos.distance_to(e.pos) < e.radius + bullet.other_surface.radius:
+                        if bullet.pos.distance_to(e.pos) < e.radius + bullet.radius:
                             e.add_dmg(bullet.get_dmg())
                     elif bullet.state == 2:
                         self.player.casts.remove(bullet)
