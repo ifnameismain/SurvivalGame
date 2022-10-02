@@ -67,6 +67,7 @@ class StatusBomb:
                 self.rect = pg.Rect(self.pos.x - self.radius, self.pos.y - self.radius, 2 * self.radius,
                                     2 * self.radius)
         else:
+            self.other_surface.update()
             self.time += 1
             self.dmg_tick += 1
             if self.time == 120:
@@ -89,7 +90,7 @@ class StatusBomb:
         if self.state == 0:
             win.blit(self.surface, (x - self.radius, y - self.radius))
         else:
-            win.blit(self.other_surface.surface, (x - self.other_radius, y - self.other_radius))
+            self.other_surface.draw(win, camera)
 
 
 class Beam:

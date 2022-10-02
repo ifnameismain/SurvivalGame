@@ -1,7 +1,11 @@
 import pygame as pg
 import os.path
 import glob
-import math
+from math import cos, sin, radians
+
+
+def get_angled_vector(angle):
+    return pg.Vector2(cos(radians(angle)), sin(radians(angle)))
 
 
 def create_text_object(text, font, position: tuple, color, max_size=(0, 0), line_width=20):

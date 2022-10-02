@@ -106,13 +106,13 @@ class Player:
             if attack['timer'] == attack['cd'] * Config.FRAME_RATE//Config.GAME_SPEED:
                 if base_velocity is None:
                     self.calculate_angle()
-                    base_velocity = pg.Vector2(cos(radians(self.rotation)), sin(radians(self.rotation)))
+                    base_velocity = get_angled_vector(self.rotation)
                 if attack['class'] == "Bullet":
                     velocity = pg.Vector2(base_velocity.x * attack['speed'] * Config.GAME_SPEED, base_velocity.y * Config.GAME_SPEED* attack['speed'])
                     self.casts.append(ALL_ATTACKS[attack['class']](self.pos.x, self.pos.y, velocity,
                                       dmg=attack['dmg dict'], **attack['inits']))
                 else:
-                    velocity = pg.Vector2(base_velocity.x * attack['speed']* Config.GAME_SPEED, base_velocity.y * attack['speed']* Config.GAME_SPEED)
+                    velocity = pg.Vector2(base_velocity.x * attack['speed'] * Config.GAME_SPEED, base_velocity.y * attack['speed']* Config.GAME_SPEED)
                     self.casts.append(ALL_ATTACKS[attack['class']](self.pos.x, self.pos.y,
                                                                    *camera.player_relative(*get_mouse()), velocity,
                                                                    dmg=attack['dmg dict'], **attack['inits']))

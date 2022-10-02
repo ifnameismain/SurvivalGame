@@ -149,7 +149,7 @@ class BaseEnemy:
         self.surface.blit(surf_2, (0, 0), special_flags=pg.BLEND_RGB_MIN)
         pg.draw.circle(self.surface, (255, 255, 255), (self.radius, self.radius), self.radius, width=1)
         if self.num_converge != 0:
-            text, pos = centred_text(str(self.num_converge), Config.FONTS['dmg notification'], (self.radius, self.radius), (255,255,255))
+            text, pos = centred_text(str(self.num_converge), Config.FONTS['dmg_notification'], (self.radius, self.radius), (255,255,255))
             self.surface.blit(text, pos)
 
     def draw(self, win, camera):
