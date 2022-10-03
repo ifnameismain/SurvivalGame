@@ -20,7 +20,7 @@ class Player:
         self.move_state = {control: False for control in self.controls.values()}
         self.dmg_notification = {}
         self.attacks = {}
-        self.register_attack('Bullet')
+        self.register_attack('Fire Bomb')
         self.casts = []
         self.exp_percentage = 0
         self.surface = pg.Surface((self.w, self.w))

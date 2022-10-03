@@ -91,7 +91,7 @@ class StatusBomb:
         if self.state == 0:
             win.blit(self.surface, (x - self.radius, y - self.radius))
         else:
-            win.blit(self.surfaces[self.bomb_type][self.time], (x - self.radius, y - self.radius))
+            win.blit(self.surfaces[self.bomb_type][self.time], (x - self.radius, y - self.radius), special_flags=pg.BLEND_RGB_MAX)
 
 
 class Beam:
