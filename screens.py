@@ -155,7 +155,6 @@ class UpgradeScreen:
     def __init__(self):
         self.screen = None
         self.upgrade_cards = []
-        self.get_upgrade_cards()
         self.next_state = None
         self.lvl_amount = 0
         self.upgrade_text, self.upgrade_pos = centred_text("Choose Upgrade...", Config.FONTS['upgrade'],
@@ -179,6 +178,7 @@ class UpgradeScreen:
                     if card.x < x < card.x + card.width and card.y < y < card.y + card.height:
                         self.lvl_amount -= 1
                         self.chosen_cards.append(card.info_key)
+                        self.get_upgrade_cards()
                         if self.lvl_amount == 0:
                             self.next_state = ["game", self.chosen_cards]
 

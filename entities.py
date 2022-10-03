@@ -20,7 +20,7 @@ class Player:
         self.move_state = {control: False for control in self.controls.values()}
         self.dmg_notification = {}
         self.attacks = {}
-        self.register_attack('Poison Bomb')
+        self.register_attack('Bullet')
         self.casts = []
         self.exp_percentage = 0
         self.surface = pg.Surface((self.w, self.w))
@@ -107,7 +107,7 @@ class Player:
                     self.calculate_angle()
                     base_velocity = get_angled_vector(self.rotation)
                 if attack['class'] == "Bullet":
-                    velocity = pg.Vector2(base_velocity.x * attack['speed'] * Config.GAME_SPEED, base_velocity.y * Config.GAME_SPEED* attack['speed'])
+                    velocity = pg.Vector2(base_velocity.x * attack['speed'] * Config.GAME_SPEED, base_velocity.y * attack['speed']* Config.GAME_SPEED)
                     self.casts.append(ALL_ATTACKS[attack['class']](self.pos.x, self.pos.y, velocity,
                                       dmg=attack['dmg dict'], **attack['inits']))
                 else:

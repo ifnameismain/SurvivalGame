@@ -2,7 +2,7 @@ import pygame as pg
 import json
 from math import sqrt
 from config import *
-from effects import generate_vacuum_effect
+from effects import generate_vacuum_effect, generate_spiral_effect
 
 
 class Bullet:
@@ -24,7 +24,7 @@ class Bullet:
         return pg.transform.scale2x(self.surface), (-2*self.radius, -2*self.radius)
 
     def update(self):
-        self.pos.update(self.pos.x + self.velocity.x//Config.GAME_SPEED, self.pos.y + self.velocity.y//Config.GAME_SPEED)
+        self.pos.update(self.pos.x + self.velocity.x, self.pos.y + self.velocity.y)
         self.rect = pg.Rect(self.pos.x - self.radius, self.pos.y - self.radius, 2 * self.radius, 2 * self.radius)
 
     def create_surface(self):
@@ -40,7 +40,7 @@ class StatusBomb:
     step = 0.5
     surfaces = {'Fire Bomb': generate_vacuum_effect(Config.COLORS['burn'], base_radius, t=120, step=step),
                 'Ice Bomb': generate_vacuum_effect(Config.COLORS['slow'], base_radius, t=120, step=step),
-                'Poison Bomb': generate_vacuum_effect(Config.COLORS['poison'], base_radius, t=120, step=step),
+                'Poison Bomb': generate_spiral_effect(Config.COLORS['poison'], base_radius, t=120, step=step),
                 'Blood Bomb': generate_vacuum_effect(Config.COLORS['bleed'], base_radius, t=120, step=step)}
 
     def __init__(self, x, y, target_x, target_y, velocity, color, dmg, radius, bomb_type):
