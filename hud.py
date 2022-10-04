@@ -142,7 +142,7 @@ class StatusSquare:
     def __init__(self, x, y, width, color, image):
         self.width = width
         self.image = image
-        self.outline = (255, 255, 255)
+        self.outline = Config.COLORS['outline']
         self.background = (0, 0, 0)
         self.pos = pg.Vector2(x, y)
         self.color = color
@@ -162,10 +162,10 @@ class StatusSquare:
 
     def create_surface(self):
         self.surface.fill((0, 0, 0))
-        pg.draw.rect(self.surface, Config.COLORS['outline'], (0, self.width * (1 - self.percentage),
-                                                              self.width, self.width * self.percentage))
+        pg.draw.rect(self.surface, self.outline, (0, self.width * (1 - self.percentage),
+                     self.width, self.width * self.percentage))
         # outline
-        pg.draw.rect(self.surface, Config.COLORS['outline'], (0, 0, self.width, self.width), 1)
+        pg.draw.rect(self.surface, self.outline, (0, 0, self.width, self.width), 1)
 
     def draw(self, win):
         win.blit(self.surface, self.pos)
@@ -176,15 +176,63 @@ class HUD:
         self.hp_bar = StatusBar(100, 500, 200, 20, (255, 0, 0))
         self.exp_bar = StatusBar(100, 540, 200, 20, (255, 239, 213))
         self.circle = StatusCircle(360, 500, 10, (175, 238, 238))
+        self.wave = 1
+        self.wave_text = centred_text("Wave: 1",  Config.FONTS['type'], (1100, 30), pg.Color('WHITE'))
+        self.attacks = {}
+        self.indicators = {}
 
-    def update(self, hp, level, dash, wave, wave_timer, powers: list):
+    def update(self, hp, level, dash, wave, attacks: dict):
         self.hp_bar.update(hp)
         self.exp_bar.update(level)
         self.circle.update(dash)
-        for power in powers:
-            pass
+        if self.wave != wave:
+            self.wave = wave
+            self.wave_text = left_text(f"Wave: {wave}", Config.FONTS['type'], (1100, 30), pg.Color('WHITE'))
+        for attack, info in attacks.items():
+            if attack not in self.attacks:
+                if info['class'] == "Bullet":
+                    cast = ALL_ATTACKS[info['class']](
+                        0, 0, pg.Vector2(1, 1), dmg=None, **info['inits']).get_image()
+                else:
+                    cast = ALL_ATTACKS[info['class']](
+                        0, 0, 0, 0, pg.Vector2(1, 1), dmg={}, **info['inits'], bomb_type=attack).get_image()
+                self.indicators[attack] = AttackIndicator(*cast)
+                self.attacks[attack] = info
+            else:
+                self.indicators[attack].update(info['timer'] / (info['cd'] * Config.FRAME_RATE//Config.GAME_SPEED))
 
     def draw(self, win):
         self.hp_bar.draw(win)
         self.circle.draw(win)
         self.exp_bar.draw(win)
+        win.blit(*self.wave_text)
+        offset = - 64 * (len(self.indicators) - 1) / 2
+        for indicator in self.indicators.values():
+            win.blit(indicator.surface, (600 + offset - indicator.width//2, 640 - indicator.height//2))
+            offset += 64
+
+
+class AttackIndicator:
+    def __init__(self, icon, offset):
+        self.outline = Config.COLORS['outline']
+        self.icon = icon
+        self.offset = offset
+        self.background = (0, 0, 0)
+        self.percentage = 0
+        self.last_percentage = 1
+        self.width, self.height = (c+2 for c in icon.get_size())
+        self.surface = pg.Surface((self.width, self.height))
+        self.surface.set_colorkey((0, 0, 0))
+        self.create_surface()
+
+    def update(self, percentage):
+        self.percentage = percentage
+        if self.percentage != self.last_percentage:
+            self.last_percentage = percentage
+            self.create_surface()
+
+    def create_surface(self):
+        self.surface.fill((0, 0, 0))
+        # draw icon
+        self.surface.blit(self.icon, (self.width//2 + self.offset[0], self.height//2 + self.offset[1] + self.height * (1 - self.percentage)),
+                          (0, self.height * (1 - self.percentage), self.width, self.height * self.percentage))

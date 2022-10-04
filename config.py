@@ -11,9 +11,9 @@ class Config:
     _config = configparser.ConfigParser()
     _config.read('config.ini')
     GAME_CAPTION = _config['window']['game_caption']
-    WIDTH, HEIGHT = int(_config['window']['width']), int(_config['window']['height'])
-    UNSCALED_SIZE = (WIDTH, HEIGHT)
-    SCALED_SIZE = (int(_config['window']['s_width']), int(_config['window']['s_height']))
+    WIDTH, HEIGHT = 1200, 680
+    UNSCALED_SIZE = (1200, 680)
+    SCALED_SIZE = (int(_config['window']['width']), int(_config['window']['height']))
     FRAME_RATE = int(_config['window']['frame_rate'])
     GAME_SPEED = int(_config['window']['speed']) * (60/FRAME_RATE)
     CONTROLS = {'player': {k: int(v) for k, v in _config['player'].items()}}

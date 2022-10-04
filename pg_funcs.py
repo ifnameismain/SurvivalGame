@@ -33,6 +33,21 @@ def create_text_object(text, font, position: tuple, color, max_size=(0, 0), line
     return text_obj
 
 
+def left_text(text, font, left_pos: tuple, color):
+    text = str(text)
+    text_surface, rect = font.render(text, color)
+    return [text_surface, left_pos]
+
+
+def right_text(text, font, centre_pos: tuple, color, return_offset=False):
+    text = str(text)
+    text_surface, rect = font.render(text, color)
+    text_width, _ = rect.size
+    if return_offset:
+        return text_surface, (text_width, 0)
+    return [text_surface, (centre_pos[0]-text_width, centre_pos[1])]
+
+
 def centred_text(text, font, centre_pos: tuple, color, return_offset=False):
     text = str(text)
     text_surface, rect = font.render(text, color)

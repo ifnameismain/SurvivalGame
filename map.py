@@ -29,8 +29,9 @@ class Map:
     def update_background(self, player_pos):
         x = player_pos.x % (2 * Config.TILE_SIZE)
         y = player_pos.y % (2 * Config.TILE_SIZE)
-        self.pos.update(-x,-y)
+        self.pos.update(-x, -y)
 
     def draw(self, win):
         win.blit(self.surface, self.pos)
+
 

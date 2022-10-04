@@ -92,7 +92,7 @@ class GameScreen:
             self.next_state = ['upgrade', self.player.stats['lvl'] - prev_lvl]
         self.hud.update(self.player.stats['hp'] / self.player.stats['max hp'],
                         self.player.exp_percentage, self.player.get_dash_status(),
-                        self.wave.num, self.wave.wave_time, [])
+                        self.wave.num, self.player.attacks)
         self.crosshair.update()
         self.map.update_background(self.player.pos)
         if self.player.stats['hp'] <= 0:
@@ -313,7 +313,7 @@ class SimGame:
                 exp.drawable = False
         self.hud.update(self.player.stats['hp'] / self.player.stats['max hp'],
                         self.player.exp_percentage, self.player.get_dash_status(),
-                        self.wave.num, self.wave.wave_time, [])
+                        self.wave.num, self.player.attacks)
         self.crosshair.update()
         self.map.update_background(self.player.pos)
         if self.player.stats['hp'] <= 0:

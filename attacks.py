@@ -23,6 +23,9 @@ class Bullet:
     def get_image(self):
         return pg.transform.scale2x(self.surface), (-2*self.radius, -2*self.radius)
 
+    def get_icon(self):
+        return self.surface, (-self.radius, -self.radius)
+
     def update(self):
         self.pos.update(self.pos.x + self.velocity.x, self.pos.y + self.velocity.y)
         self.rect = pg.Rect(self.pos.x - self.radius, self.pos.y - self.radius, 2 * self.radius, 2 * self.radius)
@@ -80,8 +83,11 @@ class StatusBomb:
         else:
             return {}
 
-    def get_image(self):
-        return pg.transform.scale(self.surfaces[self.bomb_type][0], (32, 32)), (-16, -16)
+    def get_image(self, i=0):
+        return pg.transform.scale(self.surfaces[self.bomb_type][i], (48, 48)), (-24, -24)
+
+    def get_icon(self, i=0):
+        return pg.transform.scale(self.surfaces[self.bomb_type][i], (16, 16)), (-8, -8)
 
     def create_surface(self):
         pg.draw.circle(self.surface, self.color, (self.radius, self.radius), self.radius)
