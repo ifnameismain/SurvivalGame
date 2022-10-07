@@ -180,6 +180,8 @@ class HUD:
         self.wave_text = centred_text("Wave: 1",  Config.FONTS['type'], (1100, 30), pg.Color('WHITE'))
         self.attacks = {}
         self.indicators = {}
+        self.update_card = False
+        self.indicator_card = create_card(64*len(self.indicators), 64, 16, color=Config.COLORS['light gray'])
 
     def update(self, hp, level, dash, wave, attacks: dict):
         self.hp_bar.update(hp)
@@ -190,6 +192,7 @@ class HUD:
             self.wave_text = left_text(f"Wave: {wave}", Config.FONTS['type'], (1100, 30), pg.Color('WHITE'))
         for attack, info in attacks.items():
             if attack not in self.attacks:
+                self.update_card = True
                 if info['class'] == "Bullet":
                     cast = ALL_ATTACKS[info['class']](
                         0, 0, pg.Vector2(1, 1), dmg=None, **info['inits']).get_image()
@@ -200,6 +203,8 @@ class HUD:
                 self.attacks[attack] = info
             else:
                 self.indicators[attack].update(info['timer'] / (info['cd'] * Config.FRAME_RATE//Config.GAME_SPEED))
+        if self.update_card:
+            self.indicator_card = create_card(64*len(self.indicators), 64, 16, color=Config.COLORS['light gray'])
 
     def draw(self, win):
         self.hp_bar.draw(win)
@@ -207,8 +212,9 @@ class HUD:
         self.exp_bar.draw(win)
         win.blit(*self.wave_text)
         offset = - 64 * (len(self.indicators) - 1) / 2
+        win.blit(self.indicator_card, (600 + offset - 32, 620 - 32))
         for indicator in self.indicators.values():
-            win.blit(indicator.surface, (600 + offset - indicator.width//2, 640 - indicator.height//2))
+            win.blit(indicator.surface, (600 + offset - indicator.width//2, 620 - indicator.height//2))
             offset += 64
 
 

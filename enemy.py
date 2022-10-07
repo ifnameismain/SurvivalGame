@@ -3,6 +3,7 @@ from math import atan2, pi, sin, cos, sqrt
 from config import *
 from pg_funcs import *
 import sys
+from effects import shattering_circle
 
 
 class BaseEnemy:
@@ -157,6 +158,15 @@ class BaseEnemy:
         win.blit(self.surface, (x - self.radius, y - self.radius))
 
 
+class NormalEnemy(BaseEnemy):
+    color = (210, 105, 30)
+    shatter_array = shattering_circle(color, 10)
+
+    def __init__(self, x, y):
+        super().__init__(x, y, 10, 50, 10, 1 * Config.GAME_SPEED, self.color)
+
+
+
 class Dasher(BaseEnemy):
     def __init__(self, x, y):
         super().__init__(x, y, 4, 30, 10, 0.5, (38, 242, 143))
@@ -171,7 +181,6 @@ class Dasher(BaseEnemy):
         self.type = "dasher"
         self.max_distance = 0
         self.line = [(0, 0), (0, 0)]
-        self.rect = pg.Rect(self.pos.x - self.radius, self.pos.y - self.radius, self.radius*2, self.radius*2)
 
     def update(self, player_pos):
         if self.cooldown:
@@ -238,126 +247,13 @@ class Dasher(BaseEnemy):
             pg.draw.line(win, (242, 242, 38), camera.object_pos(*self.line[0]), camera.object_pos(*self.line[1]))
 
 
-class MageEnemy:
-    def __init__(self, x, y, radius, hp, dmg, speed, color):
-        self.pos = pg.Vector2(x, y)
-        self.color = color
-        self.radius = radius
-        self.rect = pg.Rect(self.pos.x - self.radius, self.pos.y - self.radius, self.radius*2, self.radius*2)
-        self.rotation = 0
-        self.previous_pos = pg.Vector2(x, y)
-        self.vel = pg.Vector2(x, y)
-        self.stats = {"max hp": hp, "hp": hp, "dmg": dmg, "hp percentage": 1, "base speed": speed, "speed": speed}
-        self.status = Config.BASE_STATUS.copy()
-        self.timer = 0
-        self.max_time = 15
-        self.num_converge = 0
-        self.dmg = dmg
-        self.kite = False
-        self.status_tick_timers = Config.BASE_STATUS.copy()
-        self.status_tick_rate = Config.FRAME_RATE//2
-        self.type = "base"
-        self.exp = 15
-        self.drawn_quadrants = 4
-        self.drawable = False
-        self.surface = pg.Surface((2 * self.radius, 2 * self.radius))
-        self.surface.set_colorkey((0, 0, 0))
-        self.create_surface()
-
-    def add_dmg(self, dmg: dict):
-        for key, val in dmg.items():
-            if "chance" not in key:
-                self.status[key] += val
-
-    def inflict_status(self, key, val):
-        if key == "slow":
-            self.stats['speed'] = self.stats['base speed'] - 0.03 * val
-        else:
-            self.stats['hp'] -= val * 3
-
-    def calculate_health(self):
-        if self.stats['hp'] < 0:
-            self.stats['hp'] = 0
-            self.stats['hp percentage'] = 0
-        else:
-            self.stats['hp percentage'] = self.stats['hp']/self.stats['max hp']
-        return int(self.stats['hp percentage']/0.01)
-
-    def calculate_status(self):
-        prev_hp = self.stats['hp']
-        for key, val in self.status.items():
-            if val != 0:
-                if key == "normal":
-                    self.stats['hp'] -= val
-                    self.status[key] = 0
-                elif self.status_tick_timers[key] == self.status_tick_rate:
-                    self.status_tick_timers[key] = 0
-                    self.inflict_status(key, val)
-                    self.status[key] -= 1
-                else:
-                    self.status_tick_timers[key] += 1
-        if prev_hp != self.stats['hp']:
-            if self.calculate_health() != self.drawn_quadrants:
-                self.create_surface()
-
-    def converge(self, other):
-        if other.radius > self.radius:
-            self.radius = other.radius + sqrt(self.radius) / 3
-        else:
-            self.radius += sqrt(other.radius) / 3
-        self.stats['hp'] += other.stats['hp']
-        self.stats['max hp'] += other.stats['max hp']
-        self.stats['hp percentage'] = self.stats['hp'] / self.stats['max hp']
-        self.exp += other.exp
-        self.num_converge += other.num_converge + 1
-        self.create_surface(new_radius=True)
+class MageEnemy(BaseEnemy):
+    def __init__(self, x, y):
+        super().__init__(x, y, 4, 30, 10, 0.5, (38, 242, 143))
+        self.type = "mage"
 
     def update(self, player_pos):
-        if self.pos.x + self.radius > player_pos.x + Config.WIDTH // 2 or self.pos.x - self.radius < player_pos.x - Config.WIDTH // 2:
-            self.drawable = False
-            if random.uniform(0, 1) < 0.02:
-                self.kite = True
-        elif self.pos.y + self.radius > player_pos.y + Config.HEIGHT // 2 or self.pos.y - self.radius < player_pos.y - Config.HEIGHT // 2:
-            self.drawable = False
-            if random.uniform(0, 1) < 0.02:
-                self.kite = True
-        else:
-            self.drawable = False
-        rise = player_pos.y - self.pos.y
-        run = player_pos.x - self.pos.x
-        if run != 0:
-            m = abs(rise/run)
-        else:
-            m = 1000
-        self.previous_pos.update(self.pos.x, self.pos.y)
-        if self.pos.x > player_pos.x:
-            self.pos.x -= self.stats['speed'] / (m + 1)
-        else:
-            self.pos.x += self.stats['speed'] / (m + 1)
-        if self.pos.y > player_pos.y:
-            self.pos.y -= self.stats['speed'] * m / (m + 1)
-        else:
-            self.pos.y += self.stats['speed'] * m / (m + 1)
-        self.rect.update(self.pos.x - self.radius, self.pos.y - self.radius, self.radius*2, self.radius*2)
-        self.calculate_status()
-
-    def create_surface(self, new_radius=False):
-        if new_radius:
-            self.surface = pg.Surface((2 * self.radius,  2 * self.radius))
-            self.surface.set_colorkey((0, 0, 0))
-        self.surface.fill((0, 0, 0))
-        surf_2 = pg.Surface((2*self.radius, 2*self.radius))
-        surf_2.fill((0, 0, 0))
-        pg.draw.rect(surf_2, self.color, (0, 2*self.radius*(1-self.stats['hp percentage']), 2 * self.radius,
-                                          2*self.radius*self.stats['hp percentage']))
-
-        pg.draw.circle(self.surface, (255, 255, 255), (self.radius, self.radius), self.radius)
-        self.surface.blit(surf_2, (0, 0), special_flags=pg.BLEND_RGB_MIN)
-        pg.draw.circle(self.surface, (255, 255, 255), (self.radius, self.radius), self.radius, width=1)
-        if self.num_converge != 0:
-            text, pos = centred_text(str(self.num_converge), Config.FONTS['dmg notification'], (self.radius, self.radius), (255,255,255))
-            self.surface.blit(text, pos)
+        super().update(player_pos)
 
     def draw(self, win, camera):
-        x, y = camera.object_pos(self.pos.x, self.pos.y)
-        win.blit(self.surface, (x - self.radius, y - self.radius))
+        super().draw(win, camera)

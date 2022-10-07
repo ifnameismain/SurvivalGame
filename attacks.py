@@ -2,7 +2,7 @@ import pygame as pg
 import json
 from math import sqrt
 from config import *
-from effects import generate_vacuum_effect, generate_spiral_effect
+from effects import generate_vacuum_effect, generate_spiral_effect, shattering_circle, shattered_image
 
 
 class Bullet:
@@ -16,6 +16,8 @@ class Bullet:
         self.surface = pg.Surface((2 * radius, 2 * radius))
         self.surface.set_colorkey((0, 0, 0))
         self.create_surface()
+        self.state = 0
+        self.final_state = 1
 
     def get_dmg(self):
         return self.dmg
@@ -41,10 +43,15 @@ class Bullet:
 class StatusBomb:
     base_radius = 120
     step = 0.5
-    surfaces = {'Fire Bomb': generate_vacuum_effect(Config.COLORS['burn'], base_radius, t=120, step=step),
-                'Ice Bomb': generate_vacuum_effect(Config.COLORS['slow'], base_radius, t=120, step=step),
-                'Poison Bomb': generate_spiral_effect(Config.COLORS['poison'], base_radius, t=120, step=step),
-                'Blood Bomb': generate_vacuum_effect(Config.COLORS['bleed'], base_radius, t=120, step=step)}
+    surfaces = {'Fire Bomb': generate_vacuum_effect(Config.COLORS['burn'], base_radius, total_time=120, step=step),
+                'Ice Bomb': generate_vacuum_effect(Config.COLORS['slow'], base_radius, total_time=120, step=step),
+                'Poison Bomb': generate_vacuum_effect(Config.COLORS['poison'], base_radius, total_time=120, step=step),
+                'Blood Bomb': generate_vacuum_effect(Config.COLORS['bleed'], base_radius, total_time=120, step=step)}
+    shatters = {'Fire Bomb': shattered_image(surfaces['Fire Bomb'][-1], 60),
+                'Ice Bomb': shattered_image(surfaces['Ice Bomb'][-1], 60),
+                'Poison Bomb': shattered_image(surfaces['Poison Bomb'][-1], 60),
+                'Blood Bomb': shattered_image(surfaces['Blood Bomb'][-1], 60),
+                "offset": surfaces['Fire Bomb'][-1].get_size()}
 
     def __init__(self, x, y, target_x, target_y, velocity, color, dmg, radius, bomb_type):
         self.pos = pg.Vector2(x, y)
@@ -61,6 +68,7 @@ class StatusBomb:
         self.surface = pg.Surface((2 * radius, 2 * radius))
         self.surface.set_colorkey((0, 0, 0))
         self.create_surface()
+        self.final_state = 3
 
     def update(self):
         if self.state == 0:
@@ -70,12 +78,17 @@ class StatusBomb:
                 self.state = 1
                 self.pos.update(self.target.x, self.target.y)
                 self.radius = int(self.base_radius - (self.time - 1) * self.step)
-        else:
+        elif self.state == 1:
             self.time += 1
             self.dmg_tick += 1
             self.radius = int(self.base_radius - (self.time - 1) * self.step)
             if self.time == 120:
                 self.state = 2
+                self.time = 0
+        else:
+            self.time += 1
+            if self.time == 60:
+                self.state = 3
 
     def get_dmg(self):
         if self.dmg_tick % 30 == 1:
@@ -96,11 +109,18 @@ class StatusBomb:
         x, y = camera.object_pos(self.pos.x, self.pos.y)
         if self.state == 0:
             win.blit(self.surface, (x - self.radius, y - self.radius))
+        elif self.state == 1:
+            win.blit(self.surfaces[self.bomb_type][self.time], (x - self.radius, y - self.radius),
+                     special_flags=pg.BLEND_RGB_MAX)
         else:
-            win.blit(self.surfaces[self.bomb_type][self.time], (x - self.radius, y - self.radius), special_flags=pg.BLEND_RGB_MAX)
+            win.blit(self.shatters[self.bomb_type][self.time],  (x - self.shatters['offset'][0],
+                                                                 y - self.shatters['offset'][1]),
+                     special_flags=pg.BLEND_RGB_MAX)
 
 
 class Beam:
+    gather_array = generate_spiral_effect(Config.COLORS['poison'], 20, 30, 6, 0.1, False)
+
     def __init__(self, x, y, target_x, target_y, dmg, color, width):
         self.pos = pg.Vector2(x, y)
         self.target = pg.Vector2(target_x, target_y)
@@ -111,6 +131,8 @@ class Beam:
         self.hw = width // 2
         self.dmg = {key: val for key, val in dmg.items() if key != "normal"}
         self.dmg_tick = 0
+        self.state = 0
+        self.final_state = 3
 
     def check_collision(self, pos, radius):
         # line point collision <= radius + line width
@@ -128,7 +150,6 @@ class Beam:
         if self.time % 60 == 0:
             self.state += 1
         if self.state == 0:
-            self.pos.update(self.pos.x + self.velocity.x, self.pos.y + self.velocity.y)
             self.time += 1
             if self.time == 60:
                 self.state = 1
@@ -137,17 +158,15 @@ class Beam:
             self.dmg_tick += 1
             if self.time == 120:
                 self.state = 2
-        else:
-            self.time += 1
-            self.dmg_tick += 1
-            if self.time == 150:
-                self.state = 2
 
     def get_dmg(self):
         if self.dmg_tick % 2 == 1:
             return self.dmg
         else:
             return {}
+
+    def get_image(self, i=0):
+        return pg.transform.scale(self.gather_array[i], (48, 48)), (-24, -24)
 
     def draw(self, win, camera):
         x, y = camera.object_pos(self.pos.x, self.pos.y)

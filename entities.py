@@ -1,5 +1,5 @@
 from config import *
-from math import sqrt, sin, cos, radians, atan, pi
+from math import atan, pi
 from pg_funcs import *
 from attacks import *
 
@@ -13,7 +13,7 @@ class Player:
         self.border = (255, 255, 255)
         self.rotation = 0
         self.vel = pg.Vector2(x, y)
-        self.stats = {"hp": 100, "max hp": 100, "speed": 2*Config.GAME_SPEED, "attack speed": 1, "flat dmg": 0,
+        self.stats = {"hp": 100, "max hp": 100, "speed": 2 * Config.GAME_SPEED, "attack speed": 1, "flat dmg": 0,
                       "% damage": 1, "flat status": 0, "% status": 1, "lvl": 1, "exp": 0}
         self.internals = {"dash cd": 1.5, "dash": 0.15, "dash timer": 0, "dash cd timer": 0}
         self.controls = Config.CONTROLS['player']
@@ -158,7 +158,8 @@ class Player:
 
     def register_attack(self, attack):
         self.attacks[attack] = Config.UPGRADES['attacks'][attack]
-        self.attacks[attack]['timer'] = 0
+        if 'timer' not in self.attacks[attack]:
+            self.attacks[attack]['timer'] = 0
         self.update_attacks(attack)
 
     def create_surface(self):

@@ -24,7 +24,7 @@ class Config:
     BACKGROUND = (120, 120, 120)
     ALT_BACKGROUND = (100, 100, 100)
     TILE_SIZE = 64
-    WAVE_TIME = 90
+    WAVE_TIME = 20
     EXP_SIZE = 4
     BLIT_FPS = True
     NOTIFICATION_TIME = 30
@@ -37,6 +37,7 @@ class Config:
     pg.mouse.set_visible(False)
     COLORS = {"outline": (255, 255, 255),
               'background': (120, 120, 120),
+              "light gray": (160, 160, 160),
               'alt background': (100, 100, 100),
               "normal": (255, 255, 255),
               "burn": (245, 183, 177),

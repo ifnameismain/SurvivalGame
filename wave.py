@@ -1,13 +1,14 @@
 from config import *
 import random
 import pygame as pg
-from enemy import BaseEnemy
+from enemy import NormalEnemy
 
 
 class Wave:
     def __init__(self):
         self.num = 1
-        self.wave_time = Config.WAVE_TIME
+        self.timer = 0
+        self.wave_time = Config.WAVE_TIME * Config.FRAME_RATE * Config.GAME_SPEED
         self.enemies = []
         self.spawn_rate = 0.001 * self.num + 0.01
         self.player_pos = pg.Vector2(0, 0)
@@ -15,6 +16,7 @@ class Wave:
     def new_wave(self):
         self.num += 1
         self.spawn_rate += 0.001
+        self.wave_time = 0
 
     def converge(self):
         for e in self.enemies:
@@ -28,11 +30,14 @@ class Wave:
 
     def spawn(self):
         if random.uniform(0, 1) < self.spawn_rate:
-            self.enemies.append(BaseEnemy(self.player_pos.x + random.randint(0, Config.WIDTH),
+            self.enemies.append(NormalEnemy(self.player_pos.x + random.randint(0, Config.WIDTH),
                                           self.player_pos.y + random.choice([-Config.HEIGHT // 2 - 10,
-                                                                             Config.HEIGHT // 2 + 10]),
-                                          10, 50, 10, 1*Config.GAME_SPEED, (210, 105, 30)))
+                                                                             Config.HEIGHT // 2 + 10])))
 
     def update(self, player_pos):
         self.spawn()
         self.player_pos.update(player_pos.x, player_pos.y)
+        if self.timer == self.wave_time:
+            self.new_wave()
+        else:
+            self.timer += 1

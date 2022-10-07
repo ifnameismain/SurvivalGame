@@ -54,18 +54,18 @@ class GameScreen:
                 self.player.casts.remove(bullet)
                 continue
             for e in self.wave.enemies:
-                if isinstance(bullet, Bullet):
+                if bullet.state == bullet.final_state:
+                    self.player.casts.remove(bullet)
+                    break
+                elif isinstance(bullet, Bullet):
                     if bullet.pos.distance_to(e.pos) < e.radius + bullet.radius:
                         e.add_dmg(bullet.get_dmg())
-                        self.player.casts.remove(bullet)
+                        bullet.state = 1
                         break
                 elif isinstance(bullet, StatusBomb):
                     if bullet.state == 1:
                         if bullet.pos.distance_to(e.pos) < e.radius + bullet.radius:
                             e.add_dmg(bullet.get_dmg())
-                    elif bullet.state == 2:
-                        self.player.casts.remove(bullet)
-                        break
                 elif isinstance(bullet, Beam):
                     if bullet.state == 1:
                         if bullet.check_collision(self.camera.player_relative(e.pos.x, e.pos.y), e.radius):
