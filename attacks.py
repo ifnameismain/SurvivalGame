@@ -1,8 +1,6 @@
-import pygame as pg
-import json
 from math import sqrt
 from config import *
-from effects import generate_vacuum_effect, generate_spiral_effect, shattering_circle, shattered_image
+from effects import generate_vacuum_effect, generate_spiral_effect, shattered_image
 
 
 class Bullet:

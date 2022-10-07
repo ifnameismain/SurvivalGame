@@ -2,7 +2,6 @@ from hud import *
 from entities import *
 from map import Map
 from camera import *
-from enemy import *
 from wave import Wave
 
 
@@ -18,6 +17,7 @@ class GameScreen:
         self.camera = PlayerCamera()
         self.map.update_background(self.player.pos)
         self.notifications = []
+        self.death_animations = []
 
     def pre_switch(self, upgrade):
         if upgrade not in [None, True]:
@@ -44,6 +44,7 @@ class GameScreen:
             e.update(self.player.pos)
             if e.stats['hp'] <= 0:
                 self.exp_points.append(ExpPoint(e.pos.x, e.pos.y, e.exp))
+                self.death_animations.append([0, *e.get_death_animation()])
                 self.wave.enemies.remove(e)
                 continue
         self.wave.converge()
@@ -118,7 +119,16 @@ class GameScreen:
             else:
                 surface.blit(notification[1][0], self.camera.object_pos(*notification[1][1]))
                 notification[0] -= 1
-
+        finished_animations = []
+        for count, (i, animation, pos, size) in enumerate(self.death_animations.copy()):
+            if i == len(animation) - 1:
+                finished_animations.append(count)
+            else:
+                surface.blit(animation[i], self.camera.object_pos(pos.x - size[0]//2, pos.y - size[0]//2))
+                self.death_animations[count][0] += 1
+        finished_animations.reverse()
+        for i in finished_animations:
+            del self.death_animations[i]
 
 class PauseScreen:
     def __init__(self):

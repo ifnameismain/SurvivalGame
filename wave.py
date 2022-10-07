@@ -31,8 +31,8 @@ class Wave:
     def spawn(self):
         if random.uniform(0, 1) < self.spawn_rate:
             self.enemies.append(NormalEnemy(self.player_pos.x + random.randint(0, Config.WIDTH),
-                                          self.player_pos.y + random.choice([-Config.HEIGHT // 2 - 10,
-                                                                             Config.HEIGHT // 2 + 10])))
+                                            self.player_pos.y + random.choice([-Config.HEIGHT // 2 - 10,
+                                                                               Config.HEIGHT // 2 + 10])))
 
     def update(self, player_pos):
         self.spawn()

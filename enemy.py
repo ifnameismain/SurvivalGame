@@ -3,10 +3,16 @@ from math import atan2, pi, sin, cos, sqrt
 from config import *
 from pg_funcs import *
 import sys
-from effects import shattering_circle
+from effects import shattered_image
 
 
 class BaseEnemy:
+    # shattered array creation
+    shattered_array = pg.Surface((20, 20))
+    shattered_array.set_colorkey((0, 0, 0))
+    pg.draw.circle(shattered_array, (255, 255, 255), (10, 10), 10, 1)
+    shattered_array = shattered_image(shattered_array.copy(), step=3)
+
     def __init__(self, x, y, radius, hp, dmg, speed, color):
         self.pos = pg.Vector2(x, y)
         self.color = color
@@ -33,6 +39,9 @@ class BaseEnemy:
         self.surface = pg.Surface((2 * self.radius, 2 * self.radius))
         self.surface.set_colorkey((0, 0, 0))
         self.create_surface()
+
+    def get_death_animation(self):
+        return self.shattered_array, self.pos, self.shattered_array[0].get_size()
 
     def get_notification(self):
         l = []
@@ -160,11 +169,9 @@ class BaseEnemy:
 
 class NormalEnemy(BaseEnemy):
     color = (210, 105, 30)
-    shatter_array = shattering_circle(color, 10)
 
     def __init__(self, x, y):
         super().__init__(x, y, 10, 50, 10, 1 * Config.GAME_SPEED, self.color)
-
 
 
 class Dasher(BaseEnemy):

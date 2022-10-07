@@ -1,5 +1,5 @@
-from config import *
-from screens import *
+from loading_screen import *
+import os
 
 
 class Controller:
@@ -62,6 +62,8 @@ if __name__ == '__main__':
     display_info = pg.display.Info()
     SCREEN_SIZE = (display_info.current_w, display_info.current_h)
     pg.display.set_mode(Config.SCALED_SIZE)
+    LoadingScreen().main_loop()
+    from screens import *
     controller = Controller()
     SCREENS = {'game': GameScreen(), 'pause': PauseScreen(), 'upgrade': UpgradeScreen(),
                'main menu': MenuScreen()}
