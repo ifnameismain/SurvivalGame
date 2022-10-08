@@ -207,18 +207,22 @@ class UpgradeScreen:
 
 
 class SettingsScreen:
-    def __init__(self, game):
+    def __init__(self):
+        self.next_state = None
+        self.title_card = create_card(400, 100, 10)
+        self.title_text, self.title_pos = centred_text("Settings", Config.FONTS['upgrade'],
+                                                       (Config.WIDTH // 2, 150), (255, 248, 220))
+        self.grid = []
+        self.game = None
+
+    def pre_switch(self, game):
         self.next_state = None
         self.game = game
-        self.grid = []
-
-    def pre_switch(self, other):
-        self.next_state = None
 
     def check_event(self, event):
         if event.type == pg.KEYDOWN:
             if event.key == pg.K_ESCAPE:
-                self.next_state = ['main menu', True]
+                self.next_state = ['main menu', self.game]
         elif event.type == pg.KEYUP:
             pass
 
@@ -230,9 +234,8 @@ class SettingsScreen:
 
     def draw(self, surface):
         self.game.draw(surface)
-        surface.blit(self.title_card, (Config.WIDTH//2-300, 125))
+        surface.blit(self.title_card, (Config.WIDTH//2-200, 100))
         surface.blit(self.title_text, self.title_pos)
-        surface.blit(self.space_text, self.space_pos)
 
 
 class MenuScreen:
@@ -248,9 +251,12 @@ class MenuScreen:
         self.icons = [BaseIcon(360, 400, 200, 50, Config.COLORS['poison'], self.fonts['Play']),
                       BaseIcon(640, 400, 200, 50, Config.COLORS['slow'], self.fonts['Options'])]
 
-    def pre_switch(self, other):
+    def pre_switch(self, game):
         self.next_state = None
-        self.game = SimGame()
+        if game is None:
+            self.game = SimGame()
+        else:
+            self.game = game
 
     def check_event(self, event):
         if event.type == pg.MOUSEBUTTONDOWN:
@@ -260,7 +266,7 @@ class MenuScreen:
                         if i == 0:
                             self.next_state = ['game', True]
                         elif i == 1:
-                            self.next_state = ['settings', True]
+                            self.next_state = ['settings', self.game]
 
     def update(self):
         for event in pg.event.get():

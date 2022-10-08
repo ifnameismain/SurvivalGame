@@ -20,8 +20,10 @@ class Controller:
             if other is True:
                 SCREENS[state] = GameScreen()
             pg.mouse.set_visible(False)
-        else:
+        elif state in ['pause', 'upgrade']:
             SCREENS[state].screen = self.window
+            pg.mouse.set_visible(True)
+        else:
             pg.mouse.set_visible(True)
         self.screen = SCREENS[state]
         self.screen.pre_switch(other)
@@ -66,5 +68,5 @@ if __name__ == '__main__':
     from screens import *
     controller = Controller()
     SCREENS = {'game': GameScreen(), 'pause': PauseScreen(), 'upgrade': UpgradeScreen(),
-               'main menu': MenuScreen()}
+               'main menu': MenuScreen(), 'settings': SettingsScreen()}
     controller.main_loop()
