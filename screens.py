@@ -3,6 +3,7 @@ from entities import *
 from map import Map
 from camera import *
 from wave import Wave
+from icons import BaseIcon
 
 
 class GameScreen:
@@ -130,6 +131,7 @@ class GameScreen:
         for i in finished_animations:
             del self.death_animations[i]
 
+
 class PauseScreen:
     def __init__(self):
         self.screen = None
@@ -208,6 +210,7 @@ class SettingsScreen:
     def __init__(self, game):
         self.next_state = None
         self.game = game
+        self.grid = []
 
     def pre_switch(self, other):
         self.next_state = None
@@ -241,40 +244,48 @@ class MenuScreen:
                                                        (Config.WIDTH//2, 200), (255, 248, 220))
         self.space_text, self.space_pos = centred_text("Press Space to Start", Config.FONTS['upgrade'],
                                                        (Config.WIDTH // 2, 400), (255, 248, 220))
+        self.fonts = {t: centred_text(t, Config.FONTS['upgrade'], (75, 25), (255, 255, 255), True) for t in ['Play', "Options"]}
+        self.icons = [BaseIcon(360, 400, 200, 50, Config.COLORS['poison'], self.fonts['Play']),
+                      BaseIcon(640, 400, 200, 50, Config.COLORS['slow'], self.fonts['Options'])]
 
     def pre_switch(self, other):
         self.next_state = None
         self.game = SimGame()
 
     def check_event(self, event):
-        if event.type == pg.KEYDOWN:
-            if event.key == pg.K_SPACE:
-                self.next_state = ['game', True]
-        elif event.type == pg.KEYUP:
-            pass
+        if event.type == pg.MOUSEBUTTONDOWN:
+            if event.button == 1:
+                for i, icon in enumerate(self.icons):
+                    if icon.is_hovered(*get_mouse()):
+                        if i == 0:
+                            self.next_state = ['game', True]
+                        elif i == 1:
+                            self.next_state = ['settings', True]
 
     def update(self):
         for event in pg.event.get():
             self.check_event(event)
         self.game.update()
+        for icon in self.icons:
+            icon.is_hovered(*get_mouse())
+            icon.update()
         return self.next_state
 
     def draw(self, surface):
         self.game.draw(surface)
         surface.blit(self.title_card, (Config.WIDTH//2-300, 125))
         surface.blit(self.title_text, self.title_pos)
-        surface.blit(self.space_text, self.space_pos)
+        for icon in self.icons:
+            icon.draw(surface)
 
 
 class SimGame:
     def __init__(self):
         self.player = Player(0, 0)
         self.map = Map()
-        self.hud = HUD()
         self.next_state = None
         self.wave = Wave()
         self.exp_points = []
-        self.crosshair = Crosshair()
         self.camera = PlayerCamera()
         self.map.update_background(self.player.pos)
         self.notifications = []
@@ -321,10 +332,6 @@ class SimGame:
                     continue
             else:
                 exp.drawable = False
-        self.hud.update(self.player.stats['hp'] / self.player.stats['max hp'],
-                        self.player.exp_percentage, self.player.get_dash_status(),
-                        self.wave.num, self.player.attacks)
-        self.crosshair.update()
         self.map.update_background(self.player.pos)
         if self.player.stats['hp'] <= 0:
             self.next_state = "main menu"
@@ -340,8 +347,6 @@ class SimGame:
         for e in self.wave.enemies:
             e.draw(surface, self.camera)
         self.player.draw(surface, self.camera)
-        self.hud.draw(surface)
-        self.crosshair.draw(surface)
         for notification in self.notifications.copy():
             if notification[0] == 0:
                 self.notifications.remove(notification)

@@ -25,7 +25,7 @@ class LoadingScreen:
         self.stage = 0
         self.text = "Loading"
         self.text_surface = self.create_text_surface()
-        self.box = StatusBar(400, 380, 400, 60, (255, 255, 255))
+        self.box = StatusBar(370, 380, 400, 60, (255, 255, 255))
         self.thread = None
         self.clock = pg.time.Clock()
 

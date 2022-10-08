@@ -33,8 +33,6 @@ class Config:
     UPGRADES = {"attacks": json.load(open("cards/attacks.json", 'r')),
                 "player": json.load(open("cards/player.json", 'r'))}
                # "upgrades": json.load(open("cards/upgrades.json", 'r'))}
-
-    pg.mouse.set_visible(False)
     COLORS = {"outline": (255, 255, 255),
               'background': (120, 120, 120),
               "light gray": (160, 160, 160),
