@@ -12,8 +12,10 @@ class Config:
     _config.read('config.ini')
     GAME_CAPTION = _config['window']['game_caption']
     WIDTH, HEIGHT = 1200, 680
-    UNSCALED_SIZE = (1200, 680)
+    UNSCALED_SIZE = (WIDTH, HEIGHT)
     SCALED_SIZE = (int(_config['window']['width']), int(_config['window']['height']))
+    if SCALED_SIZE == (0, 0):
+        SCALED_SIZE = UNSCALED_SIZE
     FRAME_RATE = int(_config['window']['frame_rate'])
     GAME_SPEED = int(_config['window']['speed']) * (60/FRAME_RATE)
     CONTROLS = {'player': {k: int(v) for k, v in _config['player'].items()}}
@@ -29,6 +31,7 @@ class Config:
     BLIT_FPS = True
     NOTIFICATION_TIME = 30
     STATUS_ALPHA = 0.3
+    FIRST_ATTACK = _config['window']['first_attack']
     BASE_STATUS = json.load(open("status.json", 'r'))
     UPGRADES = {"attacks": json.load(open("cards/attacks.json", 'r')),
                 "player": json.load(open("cards/player.json", 'r'))}
