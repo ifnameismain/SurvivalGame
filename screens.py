@@ -250,10 +250,13 @@ class SettingsScreen(BaseScreen):
         if event.type == pg.KEYDOWN:
             if event.key == pg.K_ESCAPE:
                 self.next_state = ['main menu', self.game]
-        elif event.type == pg.KEYUP:
-            pass
+            else:
+                self.menu.check_event(event)
         elif event.type == pg.MOUSEWHEEL:
-            self.menu.check_event(- event.y)
+            self.menu.set_scroller_offset(- event.y)
+        elif event.type == pg.MOUSEBUTTONDOWN:
+            if event.button not in [4, 5]:
+                self.menu.check_event(event)
 
     def update(self):
         self.game.update()

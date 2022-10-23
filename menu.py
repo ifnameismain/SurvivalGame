@@ -13,14 +13,20 @@ class Menu:
         self.card = self.blank_card.copy()
         self.offset = 0
         self.multiplier = 32
-        self.max_y = self.height
-        self.scroller = Scroller(14, self.height-20, self.height)
         self.config_items = Config.get_items()
-        self.text_objects = {k: centred_text(k, Config.FONTS['header'], (0, 0), (255, 255, 255), True)
+        self.text_objects = {k: centred_text(k, Config.FONTS['header'], (0, 0), Config.COLORS['background'], True)
                              for k in self.config_items.keys()}
         self.bounding_box = create_card(self.width - 40, 50, 5)
         self.option_icons = {k: [self.new_option(k, op) for op in self.config_items[k].keys()]
                              for k in self.config_items.keys()}
+        self.max_y = 5
+        self.temp_text = ""
+        for k, (h, off) in self.text_objects.items():
+            self.max_y += 65
+        for kk, icons in self.option_icons.items():
+            for _ in icons:
+                self.max_y += 55
+        self.scroller = Scroller(14, self.height - 20, self.max_y - 20)
 
     def new_option(self, header, option):
         match Config.get_all_options(header, option):
@@ -29,23 +35,44 @@ class Menu:
                                   centred_text(Config.get_option(header, option), Config.FONTS['type'],
                                                (0, 0), (255, 255, 255), 0),
                                   [centred_text(o, Config.FONTS['type'],
-                                               (0, 0), (255, 255, 255), 0) for o in options])
+                                               (0, 0), (255, 255, 255), 0) for o in options], (header, option))
             case s:
                 return ColorIcon(self.width//2, 50, Config.COLORS['background'],
                                  centred_text(s, Config.FONTS['type'],
-                                              (0, 0), (255, 255, 255), 0), (Config.COLORS['slow']))
+                                              (0, 0), (255, 255, 255), 0), (Config.COLORS['slow']), (header, option))
 
     def check_event(self, event):
         if event.type == pg.MOUSEBUTTONDOWN:
             mx, my = get_mouse()
-            found = False
             for section_list in self.option_icons.values():
-                if found:
-                    break
                 for icon in section_list:
-                    if icon.rect.collidepoint(mx, my):
-                        found = True
-                        break
+                    if icon.is_hovered(mx, my):
+                        if not icon.clicked:
+                            self.temp_text = ""
+                        icon.clicked = True
+                    else:
+                        if icon.clicked and self.temp_text != "":
+                            if not Config.set_option(*icon.option_info, self.temp_text):
+                                icon.rendered_text, icon.offset = centred_text(Config.get_option(*icon.option_info),
+                                                                               Config.FONTS['type'],
+                                                                               (0, 0), (255, 255, 255), 0)
+                                icon.regenerate_surfaces()
+                        icon.clicked = False
+        elif event.type == pg.KEYDOWN:
+            for section_list in self.option_icons.values():
+                for icon in section_list:
+                    if icon.clicked and isinstance(icon, ColorIcon):
+                        if (k := pg.key.name(event.key)).isalnum():
+                            if len(k) == 1:
+                                self.temp_text += k
+                                icon.rendered_text, icon.offset = centred_text(self.temp_text, Config.FONTS['type'],
+                                               (0, 0), (255, 255, 255), 0)
+                                icon.regenerate_surfaces()
+                            elif k == 'backspace':
+                                self.temp_text = self.temp_text[:-1]
+                                icon.rendered_text, icon.offset = centred_text(self.temp_text, Config.FONTS['type'],
+                                                                  (0, 0), (255, 255, 255), 0)
+                                icon.regenerate_surfaces()
 
     def set_scroller_offset(self, y):
         mx, my = get_mouse()
@@ -53,8 +80,8 @@ class Menu:
             self.offset += self.multiplier * y
             if self.offset < 0:
                 self.offset = 0
-            elif self.offset > self.max_y:
-                self.offset = self.max_y
+            elif self.offset > self.max_y - self.height:
+                self.offset = self.max_y - self.height
             self.scroller.set_y(self.offset)
 
     def draw(self, win):
@@ -69,7 +96,9 @@ class Menu:
                 if k == kk:
                     for icon in icons:
                         surf, offset = icon.image
+                        x_off, y_off = 3 * (self.width-40)//4 + offset[0], o + 25 + offset[1]
                         self.card.blit(surf, (3 * (self.width-40)//4 + offset[0], o + 25 + offset[1]))
+                        icon.x, icon.y = self.x + x_off, self.y + y_off
                         o += 55
         win.blit(self.card, (self.x, self.y))
 
@@ -90,5 +119,5 @@ class Scroller:
 
     def set_y(self, offset=0):
         surf = self.base_surface.copy()
-        surf.blit(self.slider, (0, int((self.height-self.slider_height) * offset/self.max_y)))
+        surf.blit(self.slider, (0, int((self.height-self.slider_height) * offset/(self.max_y - self.height))))
         self.surface = surf

@@ -8,6 +8,7 @@ pg.freetype.init()
 
 
 class Config:
+    _filepath = 'config.ini'
     _config = configparser.ConfigParser()
     _config.read('config.ini')
     GAME_CAPTION = _config['window']['game_caption']
@@ -28,7 +29,7 @@ class Config:
     TILE_SIZE = 64
     WAVE_TIME = 20
     EXP_SIZE = 4
-    BLIT_FPS = True
+    BLIT_FPS = int(_config['window']['blit_fps'])
     NOTIFICATION_TIME = 30
     STATUS_ALPHA = 0.3
     FIRST_ATTACK = _config['window']['first_attack']
@@ -52,6 +53,18 @@ class Config:
             attack['inits']['color'] = COLORS["normal"]
 
     @classmethod
+    def load_variables(cls):
+        cls.FIRST_ATTACK = cls._config['window']['first_attack']
+        cls.GAME_CAPTION = cls._config['window']['game_caption']
+        cls.SCALED_SIZE = tuple(int(d) for d in cls._config['window']['dimensions'].split(','))
+        if cls.SCALED_SIZE == (0, 0):
+            cls.SCALED_SIZE = cls.UNSCALED_SIZE
+        cls.FRAME_RATE = int(cls._config['window']['frame_rate'])
+        cls.GAME_SPEED = int(cls._config['window']['speed']) * (60 / cls.FRAME_RATE)
+        cls.CONTROLS = {'player': {k: int(v) for k, v in cls._config['player'].items()}}
+        cls.BLIT_FPS = int(cls._config['window']['blit_fps'])
+
+    @classmethod
     def get_items(cls):
         return {k: {kk: v for kk, v in cls._config[k].items()} for k in ['window', 'player']}
 
@@ -60,18 +73,22 @@ class Config:
         return cls._config[heading][option]
 
     @classmethod
-    def set_option(cls, value: str, heading: str, option: str):
+    def set_option(cls, heading: str, option: str, value: str):
         try:
             int(cls._config[heading][option])
             try:
                 int(value)
-                cls._config[heading][option] = value
+                cls._config.set(heading, option, value)
+                cls._config.write(open(cls._filepath, "w"))
+                cls.load_variables()
                 return True
             except ValueError:
                 print(f'Cant set {option} to {value}. Value needs to be an int/float')
                 return False
         except ValueError:
-            cls._config[heading][option] = value
+            cls._config.set(heading, option, value)
+            cls._config.write(open(cls._filepath, "w"))
+            cls.load_variables()
             return True
 
     @classmethod

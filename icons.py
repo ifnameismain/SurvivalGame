@@ -14,6 +14,7 @@ class BaseIcon:
         self.outline = Config.COLORS['outline']
         self.timer = 0
         self.create_surface()
+        self.clicked = False
 
     def is_hovered(self, mx, my):
         if self.x <= mx <= self.x + self.width and self.y <= my <= self.y + self.height:
@@ -57,12 +58,11 @@ class GrowingIcon(BaseIcon):
 
 
 class OptionIcon(BaseIcon):
-    def __init__(self, width, height, color, rendered_text, option_text: list):
+    def __init__(self, width, height, color, rendered_text, option_text: list, option_info: tuple):
         super().__init__(0, 0, width, height, color, rendered_text)
-        self.selected = False
         self.base_options = create_card(self.width, int(self.height * 4.5), 8, self.color)
-        self.option_icons = [ColorIcon(width, height, color, t, (255, 160, 122)) for t in option_text]
-        self.offset = 0
+        self.option_icons = [ColorIcon(width, height, color, t, (255, 160, 122), option_info) for t in option_text]
+        self.option_info = option_info
 
     @property
     def image(self):
@@ -70,15 +70,30 @@ class OptionIcon(BaseIcon):
 
 
 class ColorIcon(BaseIcon):
-    def __init__(self, width, height, color, rendered_text, alt_color):
+    def __init__(self, width, height, color, rendered_text, alt_color, option_info: tuple):
         super().__init__(0, 0, width, height, color, rendered_text)
-        self.color = alt_color
+        self.alt_color = alt_color
+        self.swap_colors()
         self.inactive_surface = self.surface.copy()
         self.create_surface()
+        self.swap_colors()
+        self.option_info = option_info
+
+    def swap_colors(self):
+        t = self.color
+        self.color = self.alt_color
+        self.alt_color = t
+
+    def regenerate_surfaces(self):
+        self.create_surface()
+        self.inactive_surface = self.surface.copy()
+        self.swap_colors()
+        self.create_surface()
+        self.swap_colors()
 
     @property
     def image(self):
-        if self.hovered:
+        if self.clicked:
             return self.surface, (- self.width // 2, - self.height // 2)
         else:
             return self.inactive_surface, (- self.width // 2, - self.height // 2)
