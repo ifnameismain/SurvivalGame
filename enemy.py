@@ -40,25 +40,28 @@ class BaseEnemy:
         self.surface.set_colorkey((0, 0, 0))
         self.create_surface()
 
-    def get_death_animation(self):
+    @property
+    def death_animation(self):
         return self.shattered_array, self.pos, self.shattered_array[0].get_size()
 
-    def get_notification(self):
-        l = []
+    @property
+    def notification(self):
+        notification_list = []
         for key, val in self.status_inflicted.items():
             if self.status_tick_timers[key] == self.status_tick_rates[key]:
                 if key != 'slow' and val != 0:
-                    l.append(centred_text(self.calculate_status_dmg(key, val), Config.FONTS['dmg_notification'],
-                                 (self.pos.x, self.pos.y), Config.COLORS[key]))
-        match len(l):
+                    notification_list.append(centred_text(self.calculate_status_dmg(key, val),
+                                                          Config.FONTS['dmg_notification'], (self.pos.x, self.pos.y),
+                                                          Config.COLORS[key]))
+        match len(notification_list):
             case 0:
                 pass
             case _:
-                offset = - 20 * (len(l) - 1)/2
-                for i in l:
+                offset = - 20 * (len(notification_list) - 1)/2
+                for i in notification_list:
                     i[1] = (i[1][0] - offset, i[1][1])
                     offset += 20
-        return l
+        return notification_list
 
     def set_inflicted(self):
         self.status_inflicted['normal'] = 0
@@ -126,7 +129,7 @@ class BaseEnemy:
         elif self.pos.y + self.radius > player_pos.y + Config.HEIGHT // 2 or self.pos.y - self.radius < player_pos.y - Config.HEIGHT // 2:
             self.drawable = False
         else:
-            self.drawable = False
+            self.drawable = True
         rise = player_pos.y - self.pos.y
         run = player_pos.x - self.pos.x
         if run != 0:
@@ -171,7 +174,7 @@ class NormalEnemy(BaseEnemy):
     color = (210, 105, 30)
 
     def __init__(self, x, y):
-        super().__init__(x, y, 10, 50, 10, 1 * Config.GAME_SPEED, self.color)
+        super().__init__(x, y, 10, 50, 1, 1 * Config.GAME_SPEED, self.color)
 
 
 class Dasher(BaseEnemy):

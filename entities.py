@@ -26,6 +26,12 @@ class Player:
         self.surface = pg.Surface((self.w, self.w))
         self.create_surface()
 
+    @property
+    def dash_status(self):
+        return (self.internals['dash cd'] * Config.FRAME_RATE - self.internals['dash cd timer'])/(
+                self.internals['dash cd'] * Config.FRAME_RATE
+        )
+
     def modify_stats(self, stat):
         s = Config.UPGRADES['player'][stat]
         self.stats[s['stat']] += s['amount']
@@ -55,11 +61,6 @@ class Player:
             self.stats['lvl'] += 1
             self.exp_percentage = self.stats['exp'] / (self.stats['lvl'] * 5 + 10)
         self.exp_percentage = self.stats['exp']/(self.stats['lvl'] * 5 + 10)
-
-    def get_dash_status(self):
-        return (self.internals['dash cd'] * Config.FRAME_RATE - self.internals['dash cd timer'])/(
-                self.internals['dash cd'] * Config.FRAME_RATE
-        )
 
     def handle_key_press(self, key, down):
         self.move_state[key] = down

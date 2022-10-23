@@ -64,7 +64,8 @@ class OptionIcon(BaseIcon):
         self.option_icons = [ColorIcon(width, height, color, t, (255, 160, 122)) for t in option_text]
         self.offset = 0
 
-    def get_image(self):
+    @property
+    def image(self):
         return self.surface, (- self.width // 2, - self.height // 2)
 
 
@@ -75,7 +76,8 @@ class ColorIcon(BaseIcon):
         self.inactive_surface = self.surface.copy()
         self.create_surface()
 
-    def get_image(self):
+    @property
+    def image(self):
         if self.hovered:
             return self.surface, (- self.width // 2, - self.height // 2)
         else:

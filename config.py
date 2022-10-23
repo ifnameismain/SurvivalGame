@@ -13,7 +13,7 @@ class Config:
     GAME_CAPTION = _config['window']['game_caption']
     WIDTH, HEIGHT = 1200, 680
     UNSCALED_SIZE = (WIDTH, HEIGHT)
-    SCALED_SIZE = (int(_config['window']['width']), int(_config['window']['height']))
+    SCALED_SIZE = tuple(int(d) for d in _config['window']['dimensions'].split(','))
     if SCALED_SIZE == (0, 0):
         SCALED_SIZE = UNSCALED_SIZE
     FRAME_RATE = int(_config['window']['frame_rate'])
@@ -51,6 +51,33 @@ class Config:
         else:
             attack['inits']['color'] = COLORS["normal"]
 
-    @staticmethod
-    def get_items():
-        return {k: {kk: v for kk, v in Config._config[k].items()} for k in ['window', 'player']}
+    @classmethod
+    def get_items(cls):
+        return {k: {kk: v for kk, v in cls._config[k].items()} for k in ['window', 'player']}
+
+    @classmethod
+    def get_option(cls, heading: str, option: str):
+        return cls._config[heading][option]
+
+    @classmethod
+    def set_option(cls, value: str, heading: str, option: str):
+        try:
+            int(cls._config[heading][option])
+            try:
+                int(value)
+                cls._config[heading][option] = value
+                return True
+            except ValueError:
+                print(f'Cant set {option} to {value}. Value needs to be an int')
+                return False
+        except ValueError:
+            cls._config[heading][option] = value
+            return True
+
+    @classmethod
+    def get_all_options(cls, heading: str, option: str):
+        if option == 'dimensions':
+            return [f"{w}, {h}" for (w, h) in pg.display.list_modes()]
+
+        else:
+            return cls._config[heading][option]
