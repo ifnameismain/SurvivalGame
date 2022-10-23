@@ -50,3 +50,7 @@ class Config:
             attack['inits']['color'] = COLORS[attack['status']]
         else:
             attack['inits']['color'] = COLORS["normal"]
+
+    @staticmethod
+    def get_items():
+        return {k: {kk: v for kk, v in Config._config[k].items()} for k in ['window', 'player']}

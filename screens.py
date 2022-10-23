@@ -3,7 +3,8 @@ from entities import *
 from map import Map
 from camera import *
 from wave import Wave
-from icons import BaseIcon
+from icons import GrowingIcon
+from menu import Menu
 
 
 class GameScreen:
@@ -211,8 +212,8 @@ class SettingsScreen:
         self.next_state = None
         self.title_card = create_card(400, 100, 10)
         self.title_text, self.title_pos = centred_text("Settings", Config.FONTS['upgrade'],
-                                                       (Config.WIDTH // 2, 150), (255, 248, 220))
-        self.grid = []
+                                                       (Config.WIDTH // 2, 100), (255, 248, 220))
+        self.menu = Menu(Config.WIDTH//2-400, 175, 800, 450, (255, 235, 205))
         self.game = None
 
     def pre_switch(self, game):
@@ -225,6 +226,8 @@ class SettingsScreen:
                 self.next_state = ['main menu', self.game]
         elif event.type == pg.KEYUP:
             pass
+        elif event.type == pg.MOUSEWHEEL:
+            self.menu.check_event(- event.y)
 
     def update(self):
         for event in pg.event.get():
@@ -234,8 +237,9 @@ class SettingsScreen:
 
     def draw(self, surface):
         self.game.draw(surface)
-        surface.blit(self.title_card, (Config.WIDTH//2-200, 100))
+        surface.blit(self.title_card, (Config.WIDTH//2-200, 50))
         surface.blit(self.title_text, self.title_pos)
+        self.menu.draw(surface)
 
 
 class MenuScreen:
@@ -248,8 +252,8 @@ class MenuScreen:
         self.space_text, self.space_pos = centred_text("Press Space to Start", Config.FONTS['upgrade'],
                                                        (Config.WIDTH // 2, 400), (255, 248, 220))
         self.fonts = {t: centred_text(t, Config.FONTS['upgrade'], (75, 25), (255, 255, 255), True) for t in ['Play', "Options"]}
-        self.icons = [BaseIcon(360, 400, 200, 50, Config.COLORS['poison'], self.fonts['Play']),
-                      BaseIcon(640, 400, 200, 50, Config.COLORS['slow'], self.fonts['Options'])]
+        self.icons = [GrowingIcon(360, 400, 200, 50, Config.COLORS['poison'], self.fonts['Play']),
+                      GrowingIcon(640, 400, 200, 50, Config.COLORS['slow'], self.fonts['Options'])]
 
     def pre_switch(self, game):
         self.next_state = None

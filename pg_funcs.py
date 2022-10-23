@@ -195,7 +195,7 @@ def check_collisions(ref, obstacles: list):
     return False
 
 
-def create_card(width, height, radius, color=(176, 196, 222), outline=(255, 255, 255)):
+def create_card(width, height, radius, color=(176, 196, 222), outline=(255, 255, 255), opacity=255):
     surf = pg.Surface((width, height))
     # outline
     for x, y in zip([radius, width - radius, radius, width-radius], [radius, radius, height-radius, height-radius]):

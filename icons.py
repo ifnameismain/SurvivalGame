@@ -3,7 +3,7 @@ from pg_funcs import create_card
 
 
 class BaseIcon:
-    def __init__(self, x, y, width, height, color, rendered_text, shown=True):
+    def __init__(self, x, y, width, height, color, rendered_text):
         self.x, self.y = x, y
         self.width, self.height = width, height
         self.color = color
@@ -13,7 +13,6 @@ class BaseIcon:
         self.hovered = False
         self.outline = Config.COLORS['outline']
         self.timer = 0
-        self.shown = shown
         self.create_surface()
 
     def is_hovered(self, mx, my):
@@ -26,6 +25,18 @@ class BaseIcon:
     def create_surface(self):
         self.surface = create_card(self.width, self.height, 8, self.color)
         self.surface.blit(self.rendered_text, (int(self.width/2 + self.offset[0]), int(self.height/2 + self.offset[1])))
+
+    def update(self):
+        pass
+
+    def draw(self, win):
+        win.blit(self.surface, (self.x - self.width//2, self.y - self.height//2))
+
+
+class GrowingIcon(BaseIcon):
+    def __init__(self, x, y, width, height, color, rendered_text, shown=True):
+        super().__init__(x, y, width, height, color, rendered_text)
+        self.shown = shown
 
     def update(self):
         if self.hovered:
@@ -43,3 +54,29 @@ class BaseIcon:
     def draw(self, win):
         if self.shown:
             win.blit(*self.transform_surface())
+
+
+class OptionIcon(BaseIcon):
+    def __init__(self, width, height, color, rendered_text, option_text: list):
+        super().__init__(0, 0, width, height, color, rendered_text)
+        self.selected = False
+        self.base_options = create_card(self.width, int(self.height * 4.5), 8, self.color)
+        self.option_icons = [ColorIcon(width, height, color, t, (255, 160, 122)) for t in option_text]
+        self.offset = 0
+
+    def get_image(self):
+        return self.surface, (- self.width // 2, - self.height // 2)
+
+
+class ColorIcon(BaseIcon):
+    def __init__(self, width, height, color, rendered_text, alt_color):
+        super().__init__(0, 0, width, height, color, rendered_text)
+        self.color = alt_color
+        self.inactive_surface = self.surface.copy()
+        self.create_surface()
+
+    def get_image(self):
+        if self.hovered:
+            return self.surface, (- self.width // 2, - self.height // 2)
+        else:
+            return self.inactive_surface, (- self.width // 2, - self.height // 2)
