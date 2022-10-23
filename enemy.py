@@ -84,7 +84,7 @@ class BaseEnemy:
             return round(self.status[s], 1)
         elif s == 'slow':
             return 0
-        d = 3 + (self.status[s]*a - 1)
+        d = 3 + (self.status[s] * a - 1)
         return round(d, 1)
 
     def calculate_health(self):

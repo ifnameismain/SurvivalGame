@@ -26,6 +26,7 @@ class GameScreen:
             self.player.register_upgrade(upgrade)
         self.next_state = None
         self.player.move_state = {control: False for control in self.player.controls.values()}
+        pg.mouse.set_visible(False)
 
     def check_event(self, event):
         if event.type == pg.KEYDOWN:
@@ -38,8 +39,6 @@ class GameScreen:
                 self.player.handle_key_press(event.key, False)
 
     def update(self):
-        for event in pg.event.get():
-            self.check_event(event)
         self.player.update(self.camera)
         self.wave.update(self.player.pos)
         for e in self.wave.enemies.copy():
@@ -145,6 +144,7 @@ class PauseScreen:
     def pre_switch(self, other):
         self.next_state = None
         self.drawn = False
+        pg.mouse.set_visible(True)
 
     def check_event(self, event):
         if event.type == pg.KEYDOWN:
@@ -154,8 +154,6 @@ class PauseScreen:
             pass
 
     def update(self):
-        for event in pg.event.get():
-            self.check_event(event)
         return self.next_state
 
     def draw(self, surface):
@@ -178,6 +176,7 @@ class UpgradeScreen:
         self.next_state = None
         self.lvl_amount = lvl_amount
         self.get_upgrade_cards()
+        pg.mouse.set_visible(True)
 
     def get_upgrade_cards(self):
         # do something here. probably random
@@ -196,8 +195,6 @@ class UpgradeScreen:
                             self.next_state = ["game", self.chosen_cards]
 
     def update(self):
-        for event in pg.event.get():
-            self.check_event(event)
         return self.next_state
 
     def draw(self, surface):
@@ -219,6 +216,7 @@ class SettingsScreen:
     def pre_switch(self, game):
         self.next_state = None
         self.game = game
+        pg.mouse.set_visible(True)
 
     def check_event(self, event):
         if event.type == pg.KEYDOWN:
@@ -230,8 +228,6 @@ class SettingsScreen:
             self.menu.check_event(- event.y)
 
     def update(self):
-        for event in pg.event.get():
-            self.check_event(event)
         self.game.update()
         return self.next_state
 
@@ -261,6 +257,7 @@ class MenuScreen:
             self.game = SimGame()
         else:
             self.game = game
+        pg.mouse.set_visible(True)
 
     def check_event(self, event):
         if event.type == pg.MOUSEBUTTONDOWN:
@@ -273,8 +270,6 @@ class MenuScreen:
                             self.next_state = ['settings', self.game]
 
     def update(self):
-        for event in pg.event.get():
-            self.check_event(event)
         self.game.update()
         for icon in self.icons:
             icon.is_hovered(*get_mouse())
@@ -305,13 +300,12 @@ class SimGame:
             self.player.register_upgrade(upgrade)
         self.next_state = None
         self.player.move_state = {control: False for control in self.player.controls.values()}
+        pg.mouse.set_visible(True)
 
     def check_event(self, event):
         pass
 
     def update(self):
-        for event in pg.event.get():
-            self.check_event(event)
         self.wave.update(self.player.pos)
         for e in self.wave.enemies.copy():
             e.update(self.player.pos)

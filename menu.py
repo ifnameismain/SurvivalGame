@@ -13,7 +13,6 @@ class Menu:
         self.max_y = self.height
         self.scroller = Scroller(14, self.height-20, self.height)
         self.items = Config.get_items()
-        print(self.items)
         self.text_objects = {k: centred_text(k, Config.FONTS['header'], (0, 0), (255, 255, 255), True) for k in self.items.keys()}
         self.bounding_box = create_card(self.width - 40, 50, 5)
         self.typable_icons = []

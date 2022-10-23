@@ -19,12 +19,8 @@ class Controller:
         if state == 'game':
             if other is True:
                 SCREENS[state] = GameScreen()
-            pg.mouse.set_visible(False)
         elif state in ['pause', 'upgrade']:
             SCREENS[state].screen = self.window
-            pg.mouse.set_visible(True)
-        else:
-            pg.mouse.set_visible(True)
         self.screen = SCREENS[state]
         self.screen.pre_switch(other)
 
@@ -32,8 +28,6 @@ class Controller:
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 self.game_running = False
-            elif event.type == pg.KEYUP:
-                self.screen.check_event(event)
             else:
                 self.screen.check_event(event)
 

@@ -20,7 +20,7 @@ class Wave:
 
     def converge(self):
         for e in self.enemies:
-            for ee in self.enemies.copy():
+            for ee in self.enemies:
                 if e.type == ee.type:
                     if e != ee:
                         if e.pos.distance_to(ee.pos) < e.radius:
@@ -35,8 +35,8 @@ class Wave:
                                                                                Config.HEIGHT // 2 + 10])))
 
     def update(self, player_pos):
-        self.spawn()
         self.player_pos.update(player_pos.x, player_pos.y)
+        self.spawn()
         if self.timer == self.wave_time:
             self.new_wave()
         else:
