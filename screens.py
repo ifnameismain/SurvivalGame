@@ -5,14 +5,36 @@ from camera import *
 from wave import Wave
 from icons import GrowingIcon
 from menu import Menu
+from abc import ABCMeta, abstractmethod
 
 
-class GameScreen:
+class BaseScreen(metaclass=ABCMeta):
     def __init__(self):
+        self.next_state = None
+
+    @abstractmethod
+    def pre_switch(self, other):
+        pass
+
+    @abstractmethod
+    def check_event(self, event):
+        pass
+
+    @abstractmethod
+    def update(self):
+        return self.next_state
+
+    @abstractmethod
+    def draw(self, surface):
+        pass
+
+
+class GameScreen(BaseScreen):
+    def __init__(self):
+        super().__init__()
         self.player = Player(0, 0)
         self.map = Map()
         self.hud = HUD()
-        self.next_state = None
         self.wave = Wave()
         self.exp_points = []
         self.crosshair = Crosshair()
@@ -45,7 +67,7 @@ class GameScreen:
             e.update(self.player.pos)
             if e.stats['hp'] <= 0 or (e.type == 'kamikaze' and not e.attack_ready):
                 self.exp_points.append(ExpPoint(e.pos.x, e.pos.y, e.exp))
-                self.death_animations.append([0, *e.get_death_animation()])
+                self.death_animations.append([0, *e.death_animation])
                 self.wave.enemies.remove(e)
                 continue
         self.wave.converge()
@@ -80,7 +102,7 @@ class GameScreen:
 
         for e in self.wave.enemies:
             e.calculate_status()
-            if nots := e.get_notification():
+            if nots := e.notification:
                 for n in nots:
                     self.notifications.append([30, n])
             e.set_inflicted()
@@ -98,7 +120,7 @@ class GameScreen:
         if self.player.stats['lvl'] != prev_lvl:
             self.next_state = ['upgrade', self.player.stats['lvl'] - prev_lvl]
         self.hud.update(self.player.stats['hp'] / self.player.stats['max hp'],
-                        self.player.exp_percentage, self.player.get_dash_status(),
+                        self.player.exp_percentage, self.player.dash_status,
                         self.wave.num, self.player.attacks)
         self.crosshair.update()
         self.map.update_background(self.player.pos)
@@ -115,7 +137,8 @@ class GameScreen:
             if exp.drawable:
                 exp.draw(surface, self.camera)
         for e in self.wave.enemies:
-            e.draw(surface, self.camera)
+            if e.drawable:
+                e.draw(surface, self.camera)
         self.player.draw(surface, self.camera)
         self.hud.draw(surface)
         self.crosshair.draw(surface)
@@ -137,10 +160,10 @@ class GameScreen:
             del self.death_animations[i]
 
 
-class PauseScreen:
+class PauseScreen(BaseScreen):
     def __init__(self):
+        super().__init__()
         self.screen = None
-        self.next_state = None
         self.drawn = False
         self.pause_text, self.pause_pos = centred_text("Paused", Config.FONTS['title'],
                                                        (Config.WIDTH // 2, Config.HEIGHT // 2 - 100),
@@ -167,11 +190,11 @@ class PauseScreen:
             self.drawn = True
 
 
-class UpgradeScreen:
+class UpgradeScreen(BaseScreen):
     def __init__(self):
+        super().__init__()
         self.screen = None
         self.upgrade_cards = []
-        self.next_state = None
         self.lvl_amount = 0
         self.upgrade_text, self.upgrade_pos = centred_text("Choose Upgrade...", Config.FONTS['upgrade'],
                                                            (Config.WIDTH//2, 50), (255, 248, 220))
@@ -209,9 +232,9 @@ class UpgradeScreen:
         surface.blit(self.upgrade_text, self.upgrade_pos)
 
 
-class SettingsScreen:
+class SettingsScreen(BaseScreen):
     def __init__(self):
-        self.next_state = None
+        super().__init__()
         self.title_card = create_card(400, 100, 10)
         self.title_text, self.title_pos = centred_text("Settings", Config.FONTS['upgrade'],
                                                        (Config.WIDTH // 2, 100), (255, 248, 220))
@@ -243,9 +266,9 @@ class SettingsScreen:
         self.menu.draw(surface)
 
 
-class MenuScreen:
+class MenuScreen(BaseScreen):
     def __init__(self):
-        self.next_state = None
+        super().__init__()
         self.game = SimGame()
         self.title_card = create_card(600, 150, 15)
         self.title_text, self.title_pos = centred_text("Survival", Config.FONTS['title'],
@@ -289,11 +312,11 @@ class MenuScreen:
             icon.draw(surface)
 
 
-class SimGame:
+class SimGame(BaseScreen):
     def __init__(self):
+        super().__init__()
         self.player = Player(0, 0)
         self.map = Map()
-        self.next_state = None
         self.wave = Wave()
         self.exp_points = []
         self.camera = PlayerCamera()

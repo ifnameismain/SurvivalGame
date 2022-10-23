@@ -16,11 +16,7 @@ class Menu:
         self.text_objects = {k: centred_text(k, Config.FONTS['header'], (0, 0), (255, 255, 255), True) for k in self.items.keys()}
         self.bounding_box = create_card(self.width - 40, 50, 5)
         self.typable_icons = []
-        self.option_icons = {k: OptionIcon((self.width-40)//2, 50, Config.COLORS['slow'],
-                                           centred_text(k, Config.FONTS['type'], ((self.width-40)//4, 25), (255, 255, 255), True),
-                                           [centred_text(vv, Config.FONTS['type'],
-                                                         ((self.width-40)//4, 25), (255, 255, 255), True) for vv
-                                            in v.values()]) for k, v in self.items.items()}
+        self.option_icons = []
 
     def check_event(self, y):
         mx, my = get_mouse()
@@ -41,7 +37,7 @@ class Menu:
             o += 105
             for kk, icon in self.option_icons.items():
                 if k == kk:
-                    surf, offset = icon.get_image()
+                    surf, offset = icon.image
                     win.blit(surf, (self.x + 3 * (self.width-40)//4 + offset[0], self.y + o + 25 + offset[1]))
                     o += 55
 
