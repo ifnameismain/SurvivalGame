@@ -68,7 +68,7 @@ class Config:
                 cls._config[heading][option] = value
                 return True
             except ValueError:
-                print(f'Cant set {option} to {value}. Value needs to be an int')
+                print(f'Cant set {option} to {value}. Value needs to be an int/float')
                 return False
         except ValueError:
             cls._config[heading][option] = value
