@@ -43,13 +43,18 @@ class GameScreen:
         self.wave.update(self.player.pos)
         for e in self.wave.enemies.copy():
             e.update(self.player.pos)
-            if e.stats['hp'] <= 0:
+            if e.stats['hp'] <= 0 or (e.type == 'kamikaze' and not e.attack_ready):
                 self.exp_points.append(ExpPoint(e.pos.x, e.pos.y, e.exp))
                 self.death_animations.append([0, *e.get_death_animation()])
                 self.wave.enemies.remove(e)
                 continue
         self.wave.converge()
-        self.player.stats['hp'] -= len(self.player.rect.collidelistall([e.rect for e in self.wave.enemies]))
+        # self.player.stats['hp'] -= len(self.player.rect.collidelistall([e.rect for e in self.wave.enemies]))
+        for e in self.wave.enemies:
+            if e.attack_ready and self.player.mask.overlap(e.mask, (e.pos.x - self.player.pos.x, e.pos.y - self.player.pos.y)):
+                self.player.stats['hp'] -= e.dmg
+                e.attack_ready = False
+            e.able_to_dmg()
         for bullet in self.player.casts.copy():
             if abs(bullet.pos.x - self.player.pos.x) > Config.WIDTH // 2 or \
                     abs(bullet.pos.y - self.player.pos.y) > Config.HEIGHT // 2:
@@ -84,7 +89,7 @@ class GameScreen:
             if abs(self.player.pos.x - exp.pos.x) < Config.WIDTH // 2 and \
                     abs(self.player.pos.y - exp.pos.y) < Config.HEIGHT // 2:
                 exp.drawable = True
-                if self.player.rect.colliderect(exp.rect):
+                if self.player.mask.overlap(exp.mask, (exp.pos.x - self.player.pos.x, exp.pos.y - self.player.pos.y)):
                     self.player.add_exp(exp.value)
                     self.exp_points.remove(exp)
                     continue
@@ -314,14 +319,17 @@ class SimGame:
                 self.wave.enemies.remove(e)
                 continue
         self.wave.converge()
-        self.player.stats['hp'] -= len(self.player.rect.collidelistall([e.rect for e in self.wave.enemies]))
+        # self.player.stats['hp'] -= len(self.player.rect.collidelistall([e.rect for e in self.wave.enemies]))
+        for e in self.wave.enemies:
+            if self.player.mask.overlap(e.mask, (e.pos.x - self.player.pos.x, e.pos.y - self.player.pos.y)):
+                self.player.stats['hp'] -= e.dmg
         for bullet in self.player.casts.copy():
             if abs(bullet.pos.x - self.player.pos.x) > Config.WIDTH // 2 or \
                     abs(bullet.pos.y - self.player.pos.y) > Config.HEIGHT // 2:
                 self.player.casts.remove(bullet)
                 continue
             for e in self.wave.enemies.copy():
-                if bullet.rect.colliderect(e.rect):
+                if bullet.mask.overlap(e.mask, (e.pos.x - bullet.pos.x, e.pos.y - bullet.pos.y)):
                     e.add_dmg(bullet.get_dmg())
                     self.player.casts.remove(bullet)
                     break
@@ -329,7 +337,7 @@ class SimGame:
             if abs(self.player.pos.x - exp.pos.x) < Config.WIDTH // 2 and \
                     abs(self.player.pos.y - exp.pos.y) < Config.HEIGHT // 2:
                 exp.drawable = True
-                if exp.rect.colliderect(self.player.rect):
+                if exp.mask.overlap(self.player.mask, (self.player.pos.x - exp.pos.x, self.player.pos.y - exp.pos.y)):
                     if self.player.add_exp(exp.value):
                         self.next_state = 'upgrade'
                     self.exp_points.remove(exp)

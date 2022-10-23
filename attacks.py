@@ -9,13 +9,13 @@ class Bullet:
         self.velocity = velocity
         self.color = color
         self.radius = radius
-        self.rect = pg.Rect(x-radius, y-radius, 2 * radius, 2 * radius)
         self.dmg = dmg
         self.surface = pg.Surface((2 * radius, 2 * radius))
         self.surface.set_colorkey((0, 0, 0))
         self.create_surface()
         self.state = 0
         self.final_state = 1
+        self.mask = pg.mask.from_surface(self.surface)
 
     def get_dmg(self):
         return self.dmg

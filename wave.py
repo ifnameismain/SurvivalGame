@@ -1,7 +1,7 @@
 from config import *
 import random
 import pygame as pg
-from enemy import NormalEnemy
+from enemy import NormalEnemy, KamikazeEnemy
 
 
 class Wave:
@@ -31,6 +31,10 @@ class Wave:
     def spawn(self):
         if random.uniform(0, 1) < self.spawn_rate:
             self.enemies.append(NormalEnemy(self.player_pos.x + random.randint(0, Config.WIDTH),
+                                            self.player_pos.y + random.choice([-Config.HEIGHT // 2 - 10,
+                                                                               Config.HEIGHT // 2 + 10])))
+        if random.uniform(0, 1) < self.spawn_rate:
+            self.enemies.append(KamikazeEnemy(self.player_pos.x + random.randint(0, Config.WIDTH),
                                             self.player_pos.y + random.choice([-Config.HEIGHT // 2 - 10,
                                                                                Config.HEIGHT // 2 + 10])))
 

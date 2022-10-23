@@ -8,7 +8,6 @@ class Player:
     def __init__(self, x, y):
         self.pos = pg.Vector2(x, y)
         self.w, self.hw = Config.PLAYER_WIDTH, Config.PLAYER_WIDTH//2
-        self.rect = pg.Rect(self.pos.x-self.hw, self.pos.y-self.hw, self.w, self.w)
         self.color = (33, 217, 239)
         self.border = (255, 255, 255)
         self.rotation = 0
@@ -25,6 +24,7 @@ class Player:
         self.exp_percentage = 0
         self.surface = pg.Surface((self.w, self.w))
         self.create_surface()
+        self.mask = pg.mask.from_surface(self.surface)
 
     def modify_stats(self, stat):
         s = Config.UPGRADES['player'][stat]
@@ -124,7 +124,6 @@ class Player:
         self.attack(camera)
         for attack in self.casts:
             attack.update()
-        self.rect = pg.Rect(self.pos.x-self.hw, self.pos.y-self.hw, self.w, self.w)
 
     def calculate_angle(self):
         mx, my = get_mouse()
@@ -199,13 +198,13 @@ class ExpPoint:
     point = pg.Surface((2*Config.EXP_SIZE, 2*Config.EXP_SIZE))
     pg.draw.circle(point, (135, 206, 250), (Config.EXP_SIZE, Config.EXP_SIZE), Config.EXP_SIZE)
     point.set_colorkey((0, 0, 0))
+    mask = pg.mask.from_surface(point)
 
     def __init__(self, x, y, value):
         self.pos = pg.Vector2(x, y)
         self.value = value
         self.radius = Config.EXP_SIZE
         self.drawable = False
-        self.rect = pg.Rect(x-Config.EXP_SIZE, y-Config.EXP_SIZE, 2*Config.EXP_SIZE, 2*Config.EXP_SIZE)
 
     def draw(self, win, camera):
         win.blit(ExpPoint.point, camera.object_pos(self.pos.x - 4, self.pos.y - 4))

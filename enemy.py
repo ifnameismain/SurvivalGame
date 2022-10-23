@@ -17,7 +17,6 @@ class BaseEnemy:
         self.pos = pg.Vector2(x, y)
         self.color = color
         self.radius = radius
-        self.rect = pg.Rect(self.pos.x - self.radius, self.pos.y - self.radius, self.radius*2, self.radius*2)
         self.rotation = 0
         self.previous_pos = pg.Vector2(x, y)
         self.vel = pg.Vector2(x, y)
@@ -39,6 +38,9 @@ class BaseEnemy:
         self.surface = pg.Surface((2 * self.radius, 2 * self.radius))
         self.surface.set_colorkey((0, 0, 0))
         self.create_surface()
+        self.mask = pg.mask.from_surface(self.surface)
+        self.attack_ready = True
+        self.attack_timer = 0
 
     def get_death_animation(self):
         return self.shattered_array, self.pos, self.shattered_array[0].get_size()
@@ -142,7 +144,6 @@ class BaseEnemy:
             self.pos.y -= self.stats['speed'] * self.gradient / (self.gradient + 1)
         else:
             self.pos.y += self.stats['speed'] * self.gradient / (self.gradient + 1)
-        self.rect.update(self.pos.x - self.radius, self.pos.y - self.radius, self.radius*2, self.radius*2)
         self.calculate_status()
 
     def create_surface(self, new_radius=False):
@@ -165,6 +166,13 @@ class BaseEnemy:
     def draw(self, win, camera):
         x, y = camera.object_pos(self.pos.x, self.pos.y)
         win.blit(self.surface, (x - self.radius, y - self.radius))
+
+    def able_to_dmg(self):
+        if not self.attack_ready:
+            self.attack_timer += 1
+            if self.attack_timer == Config.FRAME_RATE:
+                self.attack_timer = 0
+                self.attack_ready = True
 
 
 class NormalEnemy(BaseEnemy):
@@ -202,10 +210,8 @@ class Dasher(BaseEnemy):
                     self.dash(player_pos)
             else:
                 super().update(player_pos)
-            self.rect.update(self.pos.x - self.radius, self.pos.y - self.radius, self.radius * 2, self.radius * 2)
         else:
             self.dash(player_pos)
-            self.rect.update(self.pos.x - self.radius, self.pos.y - self.radius, self.radius * 2, self.radius * 2)
 
     def dash(self, player_pos):
         self.previous_pos.update(self.pos.x, self.pos.y)
@@ -264,3 +270,35 @@ class MageEnemy(BaseEnemy):
 
     def draw(self, win, camera):
         super().draw(win, camera)
+
+
+class KamikazeEnemy(BaseEnemy):
+    def __init__(self, x, y):
+        super().__init__(x, y, 5, 10, 50, 3 * Config.GAME_SPEED, random.choice([Config.BACKGROUND,
+                                                                                Config.ALT_BACKGROUND]))
+        self.type = "kamikaze"
+
+    def create_surface(self, new_radius=False):
+        if new_radius:
+            self.surface = pg.Surface((2 * self.radius,  2 * self.radius))
+            self.surface.set_colorkey((0, 0, 0))
+        self.surface.fill((0, 0, 0))
+        surf_2 = pg.Surface((2*self.radius, 2*self.radius))
+        surf_2.fill((0, 0, 0))
+        pg.draw.rect(surf_2, self.color, (0, 2*self.radius*(1-self.stats['hp percentage']), 2 * self.radius,
+                                          2*self.radius*self.stats['hp percentage']))
+        pg.draw.circle(self.surface, (255, 255, 255), (self.radius, self.radius), self.radius)
+        self.surface.blit(surf_2, (0, 0), special_flags=pg.BLEND_RGB_MIN)
+        if self.stats['hp'] != self.stats['max hp']:
+            pg.draw.circle(self.surface, (220, 0, 0), (self.radius, self.radius), self.radius, width=1)
+
+    def converge(self, other):
+        pass
+
+    def update(self, player_pos):
+        super().update(player_pos)
+
+
+
+
+
