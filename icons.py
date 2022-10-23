@@ -66,11 +66,17 @@ class OptionIcon(BaseIcon):
 
     @property
     def image(self):
-        return self.surface, (- self.width // 2, - self.height // 2)
+        if not self.clicked:
+            return self.surface, (- self.width // 2, - self.height // 2)
+        else:
+            for count, icon in enumerate(self.option_icons):
+                i, o = icon.image
+                self.base_options.blit(i, (0, count * self.height))
+            return self.base_options, (- self.width // 2, - self.height // 2)
 
 
 class ColorIcon(BaseIcon):
-    def __init__(self, width, height, color, rendered_text, alt_color, option_info: tuple):
+    def __init__(self, width, height, color, rendered_text, alt_color, option_info: tuple, color_when_hover=False):
         super().__init__(0, 0, width, height, color, rendered_text)
         self.alt_color = alt_color
         self.swap_colors()
@@ -78,6 +84,7 @@ class ColorIcon(BaseIcon):
         self.create_surface()
         self.swap_colors()
         self.option_info = option_info
+        self.color_when_hover = color_when_hover
 
     def swap_colors(self):
         t = self.color
@@ -93,7 +100,7 @@ class ColorIcon(BaseIcon):
 
     @property
     def image(self):
-        if self.clicked:
+        if self.clicked or (self.hovered and self.color_when_hover):
             return self.surface, (- self.width // 2, - self.height // 2)
         else:
             return self.inactive_surface, (- self.width // 2, - self.height // 2)

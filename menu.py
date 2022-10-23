@@ -21,9 +21,9 @@ class Menu:
                              for k in self.config_items.keys()}
         self.max_y = 5
         self.temp_text = ""
-        for k, (h, off) in self.text_objects.items():
+        for _ in self.text_objects.items():
             self.max_y += 65
-        for kk, icons in self.option_icons.items():
+        for icons in self.option_icons.values():
             for _ in icons:
                 self.max_y += 55
         self.scroller = Scroller(14, self.height - 20, self.max_y - 20)
@@ -66,12 +66,12 @@ class Menu:
                             if len(k) == 1:
                                 self.temp_text += k
                                 icon.rendered_text, icon.offset = centred_text(self.temp_text, Config.FONTS['type'],
-                                               (0, 0), (255, 255, 255), 0)
+                                                                               (0, 0), (255, 255, 255), 0)
                                 icon.regenerate_surfaces()
                             elif k == 'backspace':
                                 self.temp_text = self.temp_text[:-1]
                                 icon.rendered_text, icon.offset = centred_text(self.temp_text, Config.FONTS['type'],
-                                                                  (0, 0), (255, 255, 255), 0)
+                                                                               (0, 0), (255, 255, 255), 0)
                                 icon.regenerate_surfaces()
 
     def set_scroller_offset(self, y):
@@ -89,6 +89,7 @@ class Menu:
         win.blit(self.base_card, (self.x, self.y))
         win.blit(self.scroller.surface, (self.x+self.width-24, self.y + 10))
         o = 5 - self.offset
+        clicked_icon = None
         for k, (h, off) in self.text_objects.items():
             self.card.blit(h, (5 + (self.width-40)//2 + off[0], o + 30 + off[1]))
             o += 65
@@ -97,9 +98,14 @@ class Menu:
                     for icon in icons:
                         surf, offset = icon.image
                         x_off, y_off = 3 * (self.width-40)//4 + offset[0], o + 25 + offset[1]
-                        self.card.blit(surf, (3 * (self.width-40)//4 + offset[0], o + 25 + offset[1]))
+                        if icon.clicked:
+                            clicked_icon = (surf, (3 * (self.width-40)//4 + offset[0], o + 25 + offset[1]))
+                        else:
+                            self.card.blit(surf, (3 * (self.width-40)//4 + offset[0], o + 25 + offset[1]))
                         icon.x, icon.y = self.x + x_off, self.y + y_off
                         o += 55
+        if clicked_icon is not None:
+            self.card.blit(*clicked_icon)
         win.blit(self.card, (self.x, self.y))
 
 
