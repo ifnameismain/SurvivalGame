@@ -8,10 +8,12 @@ class Wave:
     def __init__(self):
         self.num = 1
         self.timer = 0
-        self.wave_time = Config.WAVE_TIME * Config.FRAME_RATE * Config.GAME_SPEED
+        self.wave_time = Config.WAVE_TIME * Config.FRAME_RATE
         self.enemies = []
         self.spawn_rate = 0.001 * self.num + 0.01
         self.player_pos = pg.Vector2(0, 0)
+        self.enemy_types = {"normal": NormalEnemy}
+        self.enemy_rates = {"normal": 1}
 
     def new_wave(self):
         self.num += 1

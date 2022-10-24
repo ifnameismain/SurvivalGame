@@ -21,7 +21,7 @@ class BaseScreen(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def update(self):
+    def update(self, dt):
         return self.next_state
 
     @abstractmethod
@@ -60,7 +60,7 @@ class GameScreen(BaseScreen):
             if event.key in self.player.controls.values():
                 self.player.handle_key_press(event.key, False)
 
-    def update(self):
+    def update(self, dt):
         self.player.update(self.camera)
         self.wave.update(self.player.pos)
         for e in self.wave.enemies.copy():
@@ -181,7 +181,7 @@ class PauseScreen(BaseScreen):
         elif event.type == pg.KEYUP:
             pass
 
-    def update(self):
+    def update(self, dt):
         return self.next_state
 
     def draw(self, surface):
@@ -222,7 +222,7 @@ class UpgradeScreen(BaseScreen):
                         if self.lvl_amount == 0:
                             self.next_state = ["game", self.chosen_cards]
 
-    def update(self):
+    def update(self, dt):
         return self.next_state
 
     def draw(self, surface):
@@ -258,7 +258,7 @@ class SettingsScreen(BaseScreen):
             if event.button not in [4, 5]:
                 self.menu.check_event(event)
 
-    def update(self):
+    def update(self, dt):
         self.game.update()
         return self.next_state
 
@@ -300,8 +300,8 @@ class MenuScreen(BaseScreen):
                         elif i == 1:
                             self.next_state = ['settings', self.game]
 
-    def update(self):
-        self.game.update()
+    def update(self, dt):
+        self.game.update(dt)
         for icon in self.icons:
             icon.is_hovered(*get_mouse())
             icon.update()
@@ -336,7 +336,7 @@ class SimGame(BaseScreen):
     def check_event(self, event):
         pass
 
-    def update(self):
+    def update(self, dt):
         self.wave.update(self.player.pos)
         for e in self.wave.enemies.copy():
             e.update(self.player.pos)
@@ -345,7 +345,6 @@ class SimGame(BaseScreen):
                 self.wave.enemies.remove(e)
                 continue
         self.wave.converge()
-        # self.player.stats['hp'] -= len(self.player.rect.collidelistall([e.rect for e in self.wave.enemies]))
         for e in self.wave.enemies:
             if self.player.mask.overlap(e.mask, (e.pos.x - self.player.pos.x, e.pos.y - self.player.pos.y)):
                 self.player.stats['hp'] -= e.dmg

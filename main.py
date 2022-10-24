@@ -1,3 +1,5 @@
+import time
+
 from loading_screen import *
 import os
 
@@ -10,6 +12,13 @@ class Controller:
         self.clock = pg.time.Clock()
         self.frame_rate = Config.FRAME_RATE
         self.screen = None
+        self.previous_time = 0
+        self.dt = 0
+
+    def calculate_dt(self):
+        t = time.perf_counter_ns()
+        self.dt = time.perf_counter_ns() - self.previous_time
+        self.previous_time = t
 
     def blit_fps(self):
         self.window.blit(*centred_text(str(round(self.clock.get_fps(), 1)),
@@ -33,10 +42,12 @@ class Controller:
 
     def main_loop(self):
         self.screen = SCREENS['main menu']
+        self.previous_time = time.perf_counter_ns()
         while self.game_running:
             self.clock.tick(self.frame_rate)
             self.get_events()
-            state = self.screen.update()
+            self.calculate_dt()
+            state = self.screen.update(self.dt)
             match state:
                 case None:
                     pass
@@ -47,6 +58,7 @@ class Controller:
             self.screen.draw(self.window)
             if Config.BLIT_FPS:
                 self.blit_fps()
+                print(self.dt)
             self.display.blit(pg.transform.scale(self.window, Config.SCALED_SIZE), (0, 0))
             pg.display.update()
         pg.quit()

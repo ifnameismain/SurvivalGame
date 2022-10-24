@@ -18,7 +18,6 @@ class Config:
     if SCALED_SIZE == (0, 0):
         SCALED_SIZE = UNSCALED_SIZE
     FRAME_RATE = int(_config['window']['frame_rate'])
-    GAME_SPEED = int(_config['window']['speed']) * (60/FRAME_RATE)
     CONTROLS = {'player': {k: int(v) for k, v in _config['player'].items()}}
     FONTS = {}
     for k, v in _config['font_sizes'].items():
@@ -60,7 +59,6 @@ class Config:
         if cls.SCALED_SIZE == (0, 0):
             cls.SCALED_SIZE = cls.UNSCALED_SIZE
         cls.FRAME_RATE = int(cls._config['window']['frame_rate'])
-        cls.GAME_SPEED = int(cls._config['window']['speed']) * (60 / cls.FRAME_RATE)
         cls.CONTROLS = {'player': {k: int(v) for k, v in cls._config['player'].items()}}
         cls.BLIT_FPS = int(cls._config['window']['blit_fps'])
 

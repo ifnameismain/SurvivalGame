@@ -12,7 +12,7 @@ class Player:
         self.border = (255, 255, 255)
         self.rotation = 0
         self.vel = pg.Vector2(x, y)
-        self.stats = {"hp": 100, "max hp": 100, "speed": 2 * Config.GAME_SPEED, "attack speed": 1, "flat dmg": 0,
+        self.stats = {"hp": 100, "max hp": 100, "speed": 2, "attack speed": 1, "flat dmg": 0,
                       "% damage": 1, "flat status": 0, "% status": 1, "lvl": 1, "exp": 0}
         self.internals = {"dash cd": 1.5, "dash": 0.15, "dash timer": 0, "dash cd timer": 0}
         self.controls = Config.CONTROLS['player']
@@ -103,16 +103,16 @@ class Player:
     def attack(self, camera):
         base_velocity = None
         for attack_type, attack in self.attacks.items():
-            if attack['timer'] == attack['cd'] * Config.FRAME_RATE//Config.GAME_SPEED:
+            if attack['timer'] == attack['cd'] * Config.FRAME_RATE:
                 if base_velocity is None:
                     self.calculate_angle()
                     base_velocity = get_angled_vector(self.rotation)
                 if attack['class'] == "Bullet":
-                    velocity = pg.Vector2(base_velocity.x * attack['speed'] * Config.GAME_SPEED, base_velocity.y * attack['speed']* Config.GAME_SPEED)
+                    velocity = pg.Vector2(base_velocity.x * attack['speed'], base_velocity.y * attack['speed'])
                     self.casts.append(ALL_ATTACKS[attack['class']](self.pos.x, self.pos.y, velocity,
                                       dmg=attack['dmg dict'], **attack['inits']))
                 else:
-                    velocity = pg.Vector2(base_velocity.x * attack['speed'] * Config.GAME_SPEED, base_velocity.y * attack['speed']* Config.GAME_SPEED)
+                    velocity = pg.Vector2(base_velocity.x * attack['speed'], base_velocity.y * attack['speed'])
                     self.casts.append(ALL_ATTACKS[attack['class']](self.pos.x, self.pos.y,
                                                                    *camera.player_relative(*get_mouse()), velocity,
                                                                    dmg=attack['dmg dict'], bomb_type=attack_type, **attack['inits']))

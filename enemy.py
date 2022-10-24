@@ -182,7 +182,7 @@ class NormalEnemy(BaseEnemy):
     color = (210, 105, 30)
 
     def __init__(self, x, y):
-        super().__init__(x, y, 10, 50, 1, 1 * Config.GAME_SPEED, self.color)
+        super().__init__(x, y, 10, 50, 1, 1, self.color)
 
 
 class Dasher(BaseEnemy):
@@ -277,8 +277,7 @@ class MageEnemy(BaseEnemy):
 
 class KamikazeEnemy(BaseEnemy):
     def __init__(self, x, y):
-        super().__init__(x, y, 5, 10, 50, 3 * Config.GAME_SPEED, random.choice([Config.BACKGROUND,
-                                                                                Config.ALT_BACKGROUND]))
+        super().__init__(x, y, 5, 10, 50, 3, random.choice([Config.BACKGROUND, Config.ALT_BACKGROUND]))
         self.type = "kamikaze"
 
     def create_surface(self, new_radius=False):
