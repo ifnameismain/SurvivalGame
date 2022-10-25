@@ -23,14 +23,12 @@ class BaseEnemy:
         self.stats = {"max hp": hp, "hp": hp, "dmg": dmg, "hp percentage": 1, "base speed": speed, "speed": speed}
         self.status = Config.BASE_STATUS.copy()
         self.status_inflicted = self.status.copy()
-        self.timer = 0
-        self.max_time = 15
         self.num_converge = 0
         self.dmg = dmg
         self.gradient = 0
         self.status_tick_timers = Config.BASE_STATUS.copy()
-        self.status_tick_rates = {k: Config.FRAME_RATE if k != 'normal' else 0 for k in Config.BASE_STATUS.keys()}
-        self.status_tick_rates['slow'] = Config.FRAME_RATE*2
+        self.status_tick_rates = {k: 1 if k != 'normal' else 0 for k in Config.BASE_STATUS.keys()}
+        self.status_tick_rates['slow'] = 2
         self.type = "base"
         self.exp = 15
         self.drawn_quadrants = 10
@@ -50,7 +48,7 @@ class BaseEnemy:
     def notification(self):
         notification_list = []
         for key, val in self.status_inflicted.items():
-            if self.status_tick_timers[key] == self.status_tick_rates[key]:
+            if self.status_tick_timers[key] >= self.status_tick_rates[key]:
                 if key != 'slow' and val != 0:
                     notification_list.append(centred_text(self.calculate_status_dmg(key, val),
                                                           Config.FONTS['dmg_notification'], (self.pos.x, self.pos.y),
@@ -68,8 +66,8 @@ class BaseEnemy:
     def set_inflicted(self):
         self.status_inflicted['normal'] = 0
         for key in self.status_inflicted:
-            if self.status_tick_timers[key] == self.status_tick_rates[key]:
-                if self.status_inflicted[key] != 0:
+            if self.status_tick_timers[key] >= self.status_tick_rates[key]:
+                if self.status_inflicted[key] > 0:
                     self.status_inflicted[key] -= 1
 
     def add_dmg(self, dmg: dict):
@@ -104,11 +102,11 @@ class BaseEnemy:
         prev_hp = self.stats['hp']
         for key, val in self.status_inflicted.copy().items():
             if val != 0:
-                if self.status_tick_timers[key] == self.status_tick_rates[key]:
-                    self.status_tick_timers[key] = 0
+                if self.status_tick_timers[key] >= self.status_tick_rates[key]:
+                    self.status_tick_timers[key] -= self.status_tick_rates[key]
                     self.inflict_status(key, val)
                 else:
-                    self.status_tick_timers[key] += 1
+                    self.status_tick_timers[key] += Config.DT
         if prev_hp != self.stats['hp']:
             if self.calculate_health() != self.drawn_quadrants:
                 self.create_surface()
@@ -139,14 +137,16 @@ class BaseEnemy:
         else:
             self.gradient = 1000
         self.previous_pos.update(self.pos.x, self.pos.y)
+        sx = self.stats['speed'] * Config.DT / (self.gradient + 1)
+        sy = sx * self.gradient
         if self.pos.x > player_pos.x:
-            self.pos.x -= self.stats['speed'] / (self.gradient + 1)
+            self.pos.x -= sx
         else:
-            self.pos.x += self.stats['speed'] / (self.gradient + 1)
+            self.pos.x += sx
         if self.pos.y > player_pos.y:
-            self.pos.y -= self.stats['speed'] * self.gradient / (self.gradient + 1)
+            self.pos.y -= sy
         else:
-            self.pos.y += self.stats['speed'] * self.gradient / (self.gradient + 1)
+            self.pos.y += sy
         self.calculate_status()
 
     def create_surface(self, new_radius=False):
@@ -172,8 +172,8 @@ class BaseEnemy:
 
     def able_to_dmg(self):
         if not self.attack_ready:
-            self.attack_timer += 1
-            if self.attack_timer == Config.FRAME_RATE:
+            self.attack_timer += Config.DT
+            if self.attack_timer >= 1:
                 self.attack_timer = 0
                 self.attack_ready = True
 
@@ -182,17 +182,17 @@ class NormalEnemy(BaseEnemy):
     color = (210, 105, 30)
 
     def __init__(self, x, y):
-        super().__init__(x, y, 10, 50, 1, 1, self.color)
+        super().__init__(x, y, 10, 50, 1, 60, self.color)
 
 
 class Dasher(BaseEnemy):
     def __init__(self, x, y):
-        super().__init__(x, y, 4, 30, 10, 0.5, (38, 242, 143))
+        super().__init__(x, y, 4, 30, 10, 60, (38, 242, 143))
         self.dashing = False
         self.dash_calculated = False
         self.dash_speed = 5
         self.cooldown = False
-        self.cooldown_timer = 20
+        self.cooldown_timer = 0.5
         self.dash_pos = pg.Vector2(x, y)
         self.dash_distance = 50
         self.dash_vel = pg.Vector2(0, 0)
@@ -202,10 +202,10 @@ class Dasher(BaseEnemy):
 
     def update(self, player_pos):
         if self.cooldown:
-            self.cooldown_timer -= 1
+            self.cooldown_timer -= Config.DT
             if self.cooldown_timer == 0:
                 self.cooldown = False
-                self.cooldown_timer = 20
+                self.cooldown_timer = 0.5
         elif not self.dashing:
             if random.uniform(0, 1) < 0.05:
                 if self.pos.distance_to(player_pos) < self.dash_distance:
@@ -239,7 +239,7 @@ class Dasher(BaseEnemy):
                     m = abs(rise / run)
                 else:
                     m = 1000
-                self.dash_vel.update(2*self.dash_speed / (m + 1), 2*self.dash_speed * m / (m + 1))
+                self.dash_vel.update(2*self.dash_speed * Config.DT / (m + 1), 2*self.dash_speed * m * Config.DT / (m + 1))
                 self.dash_calculated = True
             if self.pos.x > self.dash_pos.x:
                 self.pos.x -= self.dash_vel.x
@@ -265,7 +265,7 @@ class Dasher(BaseEnemy):
 
 class MageEnemy(BaseEnemy):
     def __init__(self, x, y):
-        super().__init__(x, y, 4, 30, 10, 0.5, (38, 242, 143))
+        super().__init__(x, y, 4, 30, 10, 60, (38, 242, 143))
         self.type = "mage"
 
     def update(self, player_pos):
@@ -277,7 +277,7 @@ class MageEnemy(BaseEnemy):
 
 class KamikazeEnemy(BaseEnemy):
     def __init__(self, x, y):
-        super().__init__(x, y, 5, 10, 50, 3, random.choice([Config.BACKGROUND, Config.ALT_BACKGROUND]))
+        super().__init__(x, y, 5, 10, 50, 180, random.choice([Config.BACKGROUND, Config.ALT_BACKGROUND]))
         self.type = "kamikaze"
 
     def create_surface(self, new_radius=False):

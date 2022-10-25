@@ -27,7 +27,7 @@ class Bullet:
             return pg.transform.scale(self.surface, (size, size)), (-size/2, -size/2)
 
     def update(self):
-        self.pos.update(self.pos.x + self.velocity.x, self.pos.y + self.velocity.y)
+        self.pos.update(self.pos.x + self.velocity.x * Config.DT, self.pos.y + self.velocity.y * Config.DT)
         self.rect = pg.Rect(self.pos.x - self.radius, self.pos.y - self.radius, 2 * self.radius, 2 * self.radius)
 
     def create_surface(self):
@@ -55,7 +55,7 @@ class StatusBomb:
         self.pos = pg.Vector2(x, y)
         self.target = pg.Vector2(target_x, target_y)
         self.velocity = velocity
-        self.time = int(self.pos.distance_to(self.target) // self.velocity.magnitude())
+        self.time = int(self.pos.distance_to(self.target) // (self.velocity.magnitude()*Config.DT))
         self.state = 0 if self.time != 0 else 1
         self.bomb_type = bomb_type
         self.color = color
@@ -70,7 +70,7 @@ class StatusBomb:
 
     def update(self):
         if self.state == 0:
-            self.pos.update(self.pos.x + self.velocity.x, self.pos.y + self.velocity.y)
+            self.pos.update(self.pos.x + self.velocity.x * Config.DT, self.pos.y + self.velocity.y * Config.DT)
             self.time -= 1
             if self.time == 0:
                 self.state = 1

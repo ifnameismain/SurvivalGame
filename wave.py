@@ -8,7 +8,7 @@ class Wave:
     def __init__(self):
         self.num = 1
         self.timer = 0
-        self.wave_time = Config.WAVE_TIME * Config.FRAME_RATE
+        self.wave_time = Config.WAVE_TIME
         self.enemies = []
         self.spawn_rate = 0.001 * self.num + 0.01
         self.player_pos = pg.Vector2(0, 0)
@@ -19,6 +19,7 @@ class Wave:
         self.num += 1
         self.spawn_rate += 0.001
         self.wave_time = 0
+        self.timer -= Config.DT
 
     def converge(self):
         for e in self.enemies:
@@ -35,15 +36,15 @@ class Wave:
             self.enemies.append(NormalEnemy(self.player_pos.x + random.randint(0, Config.WIDTH),
                                             self.player_pos.y + random.choice([-Config.HEIGHT // 2 - 10,
                                                                                Config.HEIGHT // 2 + 10])))
-        if random.uniform(0, 1) < self.spawn_rate:
-            self.enemies.append(KamikazeEnemy(self.player_pos.x + random.randint(0, Config.WIDTH),
-                                            self.player_pos.y + random.choice([-Config.HEIGHT // 2 - 10,
-                                                                               Config.HEIGHT // 2 + 10])))
+        # if random.uniform(0, 1) < self.spawn_rate:
+        #     self.enemies.append(KamikazeEnemy(self.player_pos.x + random.randint(0, Config.WIDTH),
+        #                                     self.player_pos.y + random.choice([-Config.HEIGHT // 2 - 10,
+        #                                                                        Config.HEIGHT // 2 + 10])))
 
     def update(self, player_pos):
         self.player_pos.update(player_pos.x, player_pos.y)
         self.spawn()
-        if self.timer == self.wave_time:
+        if self.timer >= self.wave_time:
             self.new_wave()
         else:
-            self.timer += 1
+            self.timer += Config.DT

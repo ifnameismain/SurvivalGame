@@ -2,7 +2,7 @@
   "Bullet": {
     "class": "Bullet",
     "dmg": 30,
-    "speed": 7,
+    "speed": 420,
     "cd": 2,
     "inits": {
       "radius": 4
@@ -13,7 +13,7 @@
   "Fire Bullet": {
     "class": "Bullet",
     "dmg": 28,
-    "speed": 7,
+    "speed": 420,
     "cd": 2,
     "status": "burn",
     "chance": 1,
@@ -26,7 +26,7 @@
   "Ice Bullet": {
     "class": "Bullet",
     "dmg": 28,
-    "speed": 7,
+    "speed": 420,
     "cd": 2,
     "status": "slow",
     "chance": 1,
@@ -39,7 +39,7 @@
   "Poison Bullet": {
     "class": "Bullet",
     "dmg": 28,
-    "speed": 7,
+    "speed": 420,
     "cd": 2,
     "status": "poison",
     "chance": 1,
@@ -52,7 +52,7 @@
   "Hollow Bullet": {
     "class": "Bullet",
     "dmg": 28,
-    "speed": 7,
+    "speed": 420,
     "cd": 2,
     "status": "bleed",
     "chance": 1,
@@ -65,7 +65,7 @@
     "Fire Bomb": {
     "class": "StatusBomb",
     "dmg": 0,
-    "speed": 5,
+    "speed": 300,
     "cd": 6,
     "status": "burn",
     "chance": 1,
@@ -78,7 +78,7 @@
   "Ice Bomb": {
     "class": "StatusBomb",
     "dmg": 0,
-    "speed": 5,
+    "speed": 300,
     "cd": 6,
     "status": "slow",
     "chance": 1,
@@ -91,7 +91,7 @@
   "Poison Bomb": {
     "class": "StatusBomb",
     "dmg": 0,
-    "speed": 5,
+    "speed": 300,
     "cd": 6,
     "status": "poison",
     "chance": 1,
@@ -104,7 +104,7 @@
   "Blood Bomb": {
     "class": "StatusBomb",
     "dmg": 0,
-    "speed": 5,
+    "speed": 300,
     "cd": 6,
     "status": "bleed",
     "chance": 1,

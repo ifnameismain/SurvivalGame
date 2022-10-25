@@ -41,14 +41,14 @@ class GrowingIcon(BaseIcon):
 
     def update(self):
         if self.hovered:
-            if self.timer < 0.2*Config.FRAME_RATE:
-                self.timer += 1
+            if self.timer < 0.2:
+                self.timer += Config.DT
         else:
             if self.timer > 0:
-                self.timer -= 1
+                self.timer -= Config.DT
 
     def transform_surface(self):
-        mul = self.timer/(2*Config.FRAME_RATE)
+        mul = self.timer/2
         return pg.transform.scale(self.surface, (self.width * (1 + mul), self.height * (1 + mul))),\
                (self.x - (self.width * mul)//2, self.y - (self.height * mul)//2)
 

@@ -11,6 +11,8 @@ class Config:
     _filepath = 'config.ini'
     _config = configparser.ConfigParser()
     _config.read('config.ini')
+    DT = 1.0
+
     GAME_CAPTION = _config['window']['game_caption']
     WIDTH, HEIGHT = 1200, 680
     UNSCALED_SIZE = (WIDTH, HEIGHT)

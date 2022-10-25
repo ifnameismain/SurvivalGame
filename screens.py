@@ -21,7 +21,7 @@ class BaseScreen(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def update(self, dt):
+    def update(self):
         return self.next_state
 
     @abstractmethod
@@ -60,7 +60,7 @@ class GameScreen(BaseScreen):
             if event.key in self.player.controls.values():
                 self.player.handle_key_press(event.key, False)
 
-    def update(self, dt):
+    def update(self):
         self.player.update(self.camera)
         self.wave.update(self.player.pos)
         for e in self.wave.enemies.copy():
@@ -104,7 +104,7 @@ class GameScreen(BaseScreen):
             e.calculate_status()
             if nots := e.notification:
                 for n in nots:
-                    self.notifications.append([30, n])
+                    self.notifications.append([0.5, n])
             e.set_inflicted()
         prev_lvl = self.player.stats['lvl']
         for exp in self.exp_points.copy():
@@ -143,11 +143,11 @@ class GameScreen(BaseScreen):
         self.hud.draw(surface)
         self.crosshair.draw(surface)
         for notification in self.notifications.copy():
-            if notification[0] == 0:
+            if notification[0] <= 0:
                 self.notifications.remove(notification)
             else:
                 surface.blit(notification[1][0], self.camera.object_pos(*notification[1][1]))
-                notification[0] -= 1
+                notification[0] -= Config.DT
         finished_animations = []
         for count, (i, animation, pos, size) in enumerate(self.death_animations.copy()):
             if i == len(animation) - 1:
@@ -181,7 +181,7 @@ class PauseScreen(BaseScreen):
         elif event.type == pg.KEYUP:
             pass
 
-    def update(self, dt):
+    def update(self):
         return self.next_state
 
     def draw(self, surface):
@@ -222,7 +222,7 @@ class UpgradeScreen(BaseScreen):
                         if self.lvl_amount == 0:
                             self.next_state = ["game", self.chosen_cards]
 
-    def update(self, dt):
+    def update(self):
         return self.next_state
 
     def draw(self, surface):
@@ -258,7 +258,7 @@ class SettingsScreen(BaseScreen):
             if event.button not in [4, 5]:
                 self.menu.check_event(event)
 
-    def update(self, dt):
+    def update(self):
         self.game.update()
         return self.next_state
 
@@ -300,8 +300,8 @@ class MenuScreen(BaseScreen):
                         elif i == 1:
                             self.next_state = ['settings', self.game]
 
-    def update(self, dt):
-        self.game.update(dt)
+    def update(self):
+        self.game.update()
         for icon in self.icons:
             icon.is_hovered(*get_mouse())
             icon.update()
@@ -336,7 +336,7 @@ class SimGame(BaseScreen):
     def check_event(self, event):
         pass
 
-    def update(self, dt):
+    def update(self):
         self.wave.update(self.player.pos)
         for e in self.wave.enemies.copy():
             e.update(self.player.pos)

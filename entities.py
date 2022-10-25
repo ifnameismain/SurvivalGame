@@ -12,9 +12,9 @@ class Player:
         self.border = (255, 255, 255)
         self.rotation = 0
         self.vel = pg.Vector2(x, y)
-        self.stats = {"hp": 100, "max hp": 100, "speed": 2, "attack speed": 1, "flat dmg": 0,
+        self.stats = {"hp": 100, "max hp": 100, "speed": 120, "attack speed": 1, "flat dmg": 0,
                       "% damage": 1, "flat status": 0, "% status": 1, "lvl": 1, "exp": 0}
-        self.internals = {"dash cd": 1.5, "dash": 0.15, "dash timer": 0, "dash cd timer": 0}
+        self.internals = {"dash cd": 1.5, "dash": 0.15, "dash timer": 0.0, "dash cd timer": 0.0}
         self.controls = Config.CONTROLS['player']
         self.move_state = {control: False for control in self.controls.values()}
         self.dmg_notification = {}
@@ -28,8 +28,8 @@ class Player:
 
     @property
     def dash_status(self):
-        return (self.internals['dash cd'] * Config.FRAME_RATE - self.internals['dash cd timer'])/(
-                self.internals['dash cd'] * Config.FRAME_RATE
+        return (self.internals['dash cd'] - self.internals['dash cd timer'])/(
+                self.internals['dash cd']
         )
 
     def modify_stats(self, stat):
@@ -69,29 +69,30 @@ class Player:
         self.vel.x = 0
         self.vel.y = 0
         # Button presses
+        speed = self.stats['speed'] * Config.DT
         if self.move_state[self.controls['left']]:
-            self.vel.x -= self.stats['speed']
+            self.vel.x -= speed
         if self.move_state[self.controls['right']]:
-            self.vel.x += self.stats['speed']
+            self.vel.x += speed
         if self.move_state[self.controls['up']]:
-            self.vel.y -= self.stats['speed']
+            self.vel.y -= speed
         if self.move_state[self.controls['down']]:
-            self.vel.y += self.stats['speed']
+            self.vel.y += speed
 
-        if self.internals['dash cd timer'] != 0 and self.internals['dash timer'] == 0:
-            self.internals['dash cd timer'] -= 1
+        if self.internals['dash cd timer'] >= 0 >= self.internals['dash timer']:
+            self.internals['dash cd timer'] -= Config.DT
 
         if self.internals['dash timer'] > 0:
             self.vel.x *= 4
             self.vel.y *= 4
-            self.internals['dash timer'] -= 1
+            self.internals['dash timer'] -= Config.DT
 
         # Character is running (LSHIFT) is pressed
-        if self.move_state[self.controls['dash']] and self.internals['dash cd timer'] == 0:
+        if self.move_state[self.controls['dash']] and self.internals['dash cd timer'] <= 0:
             self.vel.x *= 4
             self.vel.y *= 4
-            self.internals['dash cd timer'] = self.internals['dash cd'] * Config.FRAME_RATE
-            self.internals['dash timer'] = self.internals['dash'] * Config.FRAME_RATE
+            self.internals['dash cd timer'] = self.internals['dash cd']
+            self.internals['dash timer'] = self.internals['dash']
 
         if self.vel.x != 0 and self.vel.y != 0:
             self.vel.x /= sqrt(2)
@@ -103,7 +104,7 @@ class Player:
     def attack(self, camera):
         base_velocity = None
         for attack_type, attack in self.attacks.items():
-            if attack['timer'] == attack['cd'] * Config.FRAME_RATE:
+            if attack['timer'] >= attack['cd']:
                 if base_velocity is None:
                     self.calculate_angle()
                     base_velocity = get_angled_vector(self.rotation)
@@ -118,7 +119,7 @@ class Player:
                                                                    dmg=attack['dmg dict'], bomb_type=attack_type, **attack['inits']))
                 attack['timer'] = 0
             else:
-                attack['timer'] += 1
+                attack['timer'] += Config.DT
 
     def update(self, camera):
         self.move()

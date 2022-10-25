@@ -87,7 +87,7 @@ class HUD:
                 self.indicators[attack] = AttackIndicator(*cast)
                 self.attacks[attack] = info
             else:
-                self.indicators[attack].update(info['timer'] / (info['cd'] * Config.FRAME_RATE))
+                self.indicators[attack].update(info['timer'] / info['cd'])
         if self.update_card:
             self.indicator_card = create_card(64*len(self.indicators), 64, 16, color=Config.COLORS['light gray'])
 

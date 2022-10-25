@@ -67,7 +67,7 @@ class StatusCircle:
     def draw(self, win):
         surf = pg.Surface((2 * self.radius, 2 * self.radius))
         # percentage
-        if self.percentage == 1:
+        if self.percentage >= 1:
             pg.draw.circle(surf, self.color, (self.radius, self.radius), self.radius)
         elif self.percentage > 0.75:
             pg.draw.circle(surf, self.color, (self.radius, self.radius), self.radius,

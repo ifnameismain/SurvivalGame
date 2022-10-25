@@ -10,14 +10,12 @@ class Controller:
         self.window = pg.Surface(Config.UNSCALED_SIZE)
         self.game_running = True
         self.clock = pg.time.Clock()
-        self.frame_rate = Config.FRAME_RATE
         self.screen = None
         self.previous_time = 0
-        self.dt = 0
 
     def calculate_dt(self):
-        t = time.perf_counter_ns()
-        self.dt = time.perf_counter_ns() - self.previous_time
+        t = time.perf_counter()
+        Config.DT = time.perf_counter() - self.previous_time
         self.previous_time = t
 
     def blit_fps(self):
@@ -44,10 +42,10 @@ class Controller:
         self.screen = SCREENS['main menu']
         self.previous_time = time.perf_counter_ns()
         while self.game_running:
-            self.clock.tick(self.frame_rate)
+            self.clock.tick(Config.FRAME_RATE)
             self.get_events()
             self.calculate_dt()
-            state = self.screen.update(self.dt)
+            state = self.screen.update()
             match state:
                 case None:
                     pass
@@ -58,7 +56,6 @@ class Controller:
             self.screen.draw(self.window)
             if Config.BLIT_FPS:
                 self.blit_fps()
-                print(self.dt)
             self.display.blit(pg.transform.scale(self.window, Config.SCALED_SIZE), (0, 0))
             pg.display.update()
         pg.quit()
