@@ -11,8 +11,8 @@ class Config:
     _filepath = 'config.ini'
     _config = configparser.ConfigParser()
     _config.read('config.ini')
-    DT = 1.0
 
+    DT = 1.0
     GAME_CAPTION = _config['window']['game_caption']
     WIDTH, HEIGHT = 1200, 680
     UNSCALED_SIZE = (WIDTH, HEIGHT)
@@ -28,6 +28,7 @@ class Config:
     BACKGROUND = (120, 120, 120)
     ALT_BACKGROUND = (100, 100, 100)
     TILE_SIZE = 64
+    CHUNK_SIZE = 64
     WAVE_TIME = 20
     EXP_SIZE = 4
     BLIT_FPS = int(_config['window']['blit_fps'])

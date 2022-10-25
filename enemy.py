@@ -124,9 +124,9 @@ class BaseEnemy:
         self.create_surface(new_radius=True)
 
     def update(self, player_pos):
-        if self.pos.x + self.radius > player_pos.x + Config.WIDTH // 2 or self.pos.x - self.radius < player_pos.x - Config.WIDTH // 2:
+        if self.pos.x - self.radius > player_pos.x + Config.WIDTH // 2 or self.pos.x + self.radius < player_pos.x - Config.WIDTH // 2:
             self.drawable = False
-        elif self.pos.y + self.radius > player_pos.y + Config.HEIGHT // 2 or self.pos.y - self.radius < player_pos.y - Config.HEIGHT // 2:
+        elif self.pos.y - self.radius > player_pos.y + Config.HEIGHT // 2 or self.pos.y + self.radius < player_pos.y - Config.HEIGHT // 2:
             self.drawable = False
         else:
             self.drawable = True

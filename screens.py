@@ -77,7 +77,7 @@ class GameScreen(BaseScreen):
                     self.death_animations.append([0, *e.death_animation])
                     delete_dict[sector].append(i)
                 else:
-                    if (sec := f"{int(e.pos.x//100)},{int(e.pos.y//100)}") != sector:
+                    if (sec := f"{int(e.pos.x//Config.CHUNK_SIZE)},{int(e.pos.y//Config.CHUNK_SIZE)}") != sector:
 
                         if sec not in append_dict.keys():
                             append_dict[sec] = [e]
@@ -103,14 +103,9 @@ class GameScreen(BaseScreen):
                 e.able_to_dmg()
             # probably add to delete dict
             for i, exp in enumerate(self.exp_points.get(sector, []).copy()[::-1]):
-                if abs(self.player.pos.x - exp.pos.x) < Config.WIDTH // 2 and \
-                        abs(self.player.pos.y - exp.pos.y) < Config.HEIGHT // 2:
-                    exp.drawable = True
-                    if self.player.mask.overlap(exp.mask, (exp.pos.x - self.player.pos.x, exp.pos.y - self.player.pos.y)):
-                        self.player.add_exp(exp.value)
-                        self.exp_points[sector].pop(i)
-                else:
-                    exp.drawable = False
+                if self.player.mask.overlap(exp.mask, (exp.pos.x - self.player.pos.x, exp.pos.y - self.player.pos.y)):
+                    self.player.add_exp(exp.value)
+                    self.exp_points[sector].pop(i)
         delete_list = []
         for i, bullet in enumerate(self.player.casts):
             if abs(bullet.pos.x - self.player.pos.x) > Config.WIDTH // 2 or \
@@ -162,7 +157,8 @@ class GameScreen(BaseScreen):
         self.player.draw_casts(surface, self.camera)
         for points in self.exp_points.values():
             for exp in points:
-                if exp.drawable:
+                if abs(self.player.pos.x - exp.pos.x) < Config.WIDTH // 2 and \
+                        abs(self.player.pos.y - exp.pos.y) < Config.HEIGHT // 2:
                     exp.draw(surface, self.camera)
         for enemies in self.wave.enemies.values():
             for e in enemies:

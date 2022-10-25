@@ -16,7 +16,7 @@ class Bullet:
         self.state = 0
         self.final_state = 1
         self.mask = pg.mask.from_surface(self.surface)
-        self.sector = [self.pos.x//100, self.pos.y//100]
+        self.sector = [self.pos.x//Config.CHUNK_SIZE, self.pos.y//Config.CHUNK_SIZE]
 
     def get_dmg(self):
         return self.dmg
@@ -29,8 +29,8 @@ class Bullet:
 
     def update(self):
         self.pos.update(self.pos.x + self.velocity.x * Config.DT, self.pos.y + self.velocity.y * Config.DT)
-        self.sector[0] = self.pos.x//100
-        self.sector[1] = self.pos.y//100
+        self.sector[0] = self.pos.x//Config.CHUNK_SIZE
+        self.sector[1] = self.pos.y//Config.CHUNK_SIZE
 
     def create_surface(self):
         pg.draw.circle(self.surface, self.color, (self.radius, self.radius), self.radius)
@@ -69,7 +69,7 @@ class StatusBomb:
         self.surface.set_colorkey((0, 0, 0))
         self.create_surface()
         self.final_state = 3
-        self.sector = [self.pos.x // 100, self.pos.y // 100]
+        self.sector = [self.pos.x // Config.CHUNK_SIZE, self.pos.y // Config.CHUNK_SIZE]
 
     def update(self):
         if self.state == 0:
@@ -79,8 +79,8 @@ class StatusBomb:
                 self.state = 1
                 self.pos.update(self.target.x, self.target.y)
                 self.radius = int(self.base_radius - (self.time - 1) * self.step)
-            self.sector[0] = int(self.pos.x//100)
-            self.sector[1] = int(self.pos.y//100)
+            self.sector[0] = int(self.pos.x//Config.CHUNK_SIZE)
+            self.sector[1] = int(self.pos.y//Config.CHUNK_SIZE)
         elif self.state == 1:
             self.time += 1
             self.dmg_tick += 1

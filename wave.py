@@ -37,10 +37,16 @@ class Wave:
 
     def spawn(self):
         if random.uniform(0, 0.01) < self.spawn_rate:
-            x, y = (self.player_pos.x + random.randint(-Config.WIDTH, Config.WIDTH),
-                                            self.player_pos.y + random.choice([-Config.HEIGHT // 2 - 10,
-                                                                               Config.HEIGHT // 2 + 10]))
-            key = f"{int(x//100)},{int(y//100)}"
+            x, y = random.choice(
+                [(self.player_pos.x + random.choice([-Config.WIDTH // 2 - 10,
+                                                    Config.WIDTH // 2 + 10]),
+                 self.player_pos.y + random.randint(-Config.HEIGHT, Config.HEIGHT)),
+                (self.player_pos.x + random.randint(-Config.WIDTH, Config.WIDTH),
+                 self.player_pos.y + random.choice([-Config.HEIGHT // 2 - 10,
+                                                    Config.HEIGHT // 2 + 10]))]
+
+            )
+            key = f"{int(x//Config.CHUNK_SIZE)},{int(y//Config.CHUNK_SIZE)}"
             if key not in self.enemies.keys():
                 self.enemies[key] = []
             self.enemies[key].append(NormalEnemy(x, y))

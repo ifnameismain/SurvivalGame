@@ -101,8 +101,8 @@ class Player:
 
         self.pos.x += self.vel.x
         self.pos.y += self.vel.y
-        self.sector[0] = int(self.pos.x//100)
-        self.sector[1] = int(self.pos.y//100)
+        self.sector[0] = int(self.pos.x//Config.CHUNK_SIZE)
+        self.sector[1] = int(self.pos.y//Config.CHUNK_SIZE)
 
     def attack(self, camera):
         base_velocity = None
