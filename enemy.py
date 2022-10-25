@@ -199,6 +199,7 @@ class Dasher(BaseEnemy):
         self.type = "dasher"
         self.max_distance = 0
         self.line = [(0, 0), (0, 0)]
+        self.attack_timer = 1
 
     def update(self, player_pos):
         if self.cooldown:

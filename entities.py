@@ -25,6 +25,7 @@ class Player:
         self.surface = pg.Surface((self.w, self.w))
         self.create_surface()
         self.mask = pg.mask.from_surface(self.surface)
+        self.sector = [0, 0]
 
     @property
     def dash_status(self):
@@ -100,6 +101,8 @@ class Player:
 
         self.pos.x += self.vel.x
         self.pos.y += self.vel.y
+        self.sector[0] = int(self.pos.x//100)
+        self.sector[1] = int(self.pos.y//100)
 
     def attack(self, camera):
         base_velocity = None

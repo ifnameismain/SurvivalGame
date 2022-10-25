@@ -36,7 +36,7 @@ class GameScreen(BaseScreen):
         self.map = Map()
         self.hud = HUD()
         self.wave = Wave()
-        self.exp_points = []
+        self.exp_points = {}
         self.crosshair = Crosshair()
         self.camera = PlayerCamera()
         self.map.update_background(self.player.pos)
@@ -63,60 +63,87 @@ class GameScreen(BaseScreen):
     def update(self):
         self.player.update(self.camera)
         self.wave.update(self.player.pos)
-        for e in self.wave.enemies.copy():
-            e.update(self.player.pos)
-            if e.stats['hp'] <= 0 or (e.type == 'kamikaze' and not e.attack_ready):
-                self.exp_points.append(ExpPoint(e.pos.x, e.pos.y, e.exp))
-                self.death_animations.append([0, *e.death_animation])
-                self.wave.enemies.remove(e)
-                continue
+        delete_dict = {sector: [] for sector in self.wave.enemies.keys()}
+        append_dict = {sector: [] for sector in self.wave.enemies.keys()}
+        prev_lvl = self.player.stats['lvl']
+        for sector, enemies in self.wave.enemies.items():
+            for i, e in enumerate(enemies):
+                e.update(self.player.pos)
+                if e.stats['hp'] <= 0 or (e.type == 'kamikaze' and not e.attack_ready):
+                    if sector not in self.exp_points.keys():
+                        self.exp_points[sector] = [ExpPoint(e.pos.x, e.pos.y, e.exp)]
+                    else:
+                        self.exp_points[sector].append(ExpPoint(e.pos.x, e.pos.y, e.exp))
+                    self.death_animations.append([0, *e.death_animation])
+                    delete_dict[sector].append(i)
+                else:
+                    if (sec := f"{int(e.pos.x//100)},{int(e.pos.y//100)}") != sector:
+
+                        if sec not in append_dict.keys():
+                            append_dict[sec] = [e]
+                        else:
+                            append_dict[sec] = [e]
+                        delete_dict[sector].append(i)
+        for sector, indexs in delete_dict.items():
+            for i in indexs[::-1]:
+                self.wave.enemies[sector].pop(i)
+        for sector, enemies in append_dict.items():
+            for e in enemies[::-1]:
+                if sector not in self.wave.enemies.keys():
+                    self.wave.enemies[sector] = [e]
+                else:
+                    self.wave.enemies[sector].append(e)
         self.wave.converge()
         # self.player.stats['hp'] -= len(self.player.rect.collidelistall([e.rect for e in self.wave.enemies]))
-        for e in self.wave.enemies:
-            if e.attack_ready and self.player.mask.overlap(e.mask, (e.pos.x - self.player.pos.x, e.pos.y - self.player.pos.y)):
-                self.player.stats['hp'] -= e.dmg
-                e.attack_ready = False
-            e.able_to_dmg()
-        for bullet in self.player.casts.copy():
+        for sector in get_sector_range(tuple(self.player.sector)):
+            for e in self.wave.enemies.get(sector, []):
+                if e.attack_ready and self.player.mask.overlap(e.mask, (e.pos.x - self.player.pos.x, e.pos.y - self.player.pos.y)):
+                    self.player.stats['hp'] -= e.dmg
+                    e.attack_ready = False
+                e.able_to_dmg()
+            # probably add to delete dict
+            for i, exp in enumerate(self.exp_points.get(sector, []).copy()[::-1]):
+                if abs(self.player.pos.x - exp.pos.x) < Config.WIDTH // 2 and \
+                        abs(self.player.pos.y - exp.pos.y) < Config.HEIGHT // 2:
+                    exp.drawable = True
+                    if self.player.mask.overlap(exp.mask, (exp.pos.x - self.player.pos.x, exp.pos.y - self.player.pos.y)):
+                        self.player.add_exp(exp.value)
+                        self.exp_points[sector].pop(i)
+                else:
+                    exp.drawable = False
+        delete_list = []
+        for i, bullet in enumerate(self.player.casts):
             if abs(bullet.pos.x - self.player.pos.x) > Config.WIDTH // 2 or \
                     abs(bullet.pos.y - self.player.pos.y) > Config.HEIGHT // 2:
+                delete_list.append(i)
+                continue
+            elif bullet.state == bullet.final_state:
                 self.player.casts.remove(bullet)
                 continue
-            for e in self.wave.enemies:
-                if bullet.state == bullet.final_state:
-                    self.player.casts.remove(bullet)
-                    break
-                elif isinstance(bullet, Bullet):
-                    if bullet.pos.distance_to(e.pos) < e.radius + bullet.radius:
-                        e.add_dmg(bullet.get_dmg())
-                        bullet.state = 1
-                        break
-                elif isinstance(bullet, StatusBomb):
-                    if bullet.state == 1:
+            for sector in get_sector_range(tuple(bullet.sector)):
+                for e in self.wave.enemies.get(sector, []):
+                    if isinstance(bullet, Bullet):
                         if bullet.pos.distance_to(e.pos) < e.radius + bullet.radius:
                             e.add_dmg(bullet.get_dmg())
-                elif isinstance(bullet, Beam):
-                    if bullet.state == 1:
-                        if bullet.check_collision(self.camera.player_relative(e.pos.x, e.pos.y), e.radius):
-                            e.add_dmg(bullet.get_dmg())
-
-        for e in self.wave.enemies:
-            e.calculate_status()
-            if nots := e.notification:
-                for n in nots:
-                    self.notifications.append([0.5, n])
-            e.set_inflicted()
-        prev_lvl = self.player.stats['lvl']
-        for exp in self.exp_points.copy():
-            if abs(self.player.pos.x - exp.pos.x) < Config.WIDTH // 2 and \
-                    abs(self.player.pos.y - exp.pos.y) < Config.HEIGHT // 2:
-                exp.drawable = True
-                if self.player.mask.overlap(exp.mask, (exp.pos.x - self.player.pos.x, exp.pos.y - self.player.pos.y)):
-                    self.player.add_exp(exp.value)
-                    self.exp_points.remove(exp)
-                    continue
-            else:
-                exp.drawable = False
+                            bullet.state = 1
+                            break
+                    elif isinstance(bullet, StatusBomb):
+                        if bullet.state == 1:
+                            if bullet.pos.distance_to(e.pos) < e.radius + bullet.radius:
+                                e.add_dmg(bullet.get_dmg())
+                    elif isinstance(bullet, Beam):
+                        if bullet.state == 1:
+                            if bullet.check_collision(self.camera.player_relative(e.pos.x, e.pos.y), e.radius):
+                                e.add_dmg(bullet.get_dmg())
+        for i in delete_list[::-1]:
+            self.player.casts.pop(i)
+        for enemies in self.wave.enemies.values():
+            for e in enemies:
+                e.calculate_status()
+                if nots := e.notification:
+                    for n in nots:
+                        self.notifications.append([0.5, n])
+                e.set_inflicted()
         if self.player.stats['lvl'] != prev_lvl:
             self.next_state = ['upgrade', self.player.stats['lvl'] - prev_lvl]
         self.hud.update(self.player.stats['hp'] / self.player.stats['max hp'],
@@ -133,12 +160,14 @@ class GameScreen(BaseScreen):
         self.camera.update_player(self.player.pos.x, self.player.pos.y)
         self.camera.update_camera()
         self.player.draw_casts(surface, self.camera)
-        for exp in self.exp_points:
-            if exp.drawable:
-                exp.draw(surface, self.camera)
-        for e in self.wave.enemies:
-            if e.drawable:
-                e.draw(surface, self.camera)
+        for points in self.exp_points.values():
+            for exp in points:
+                if exp.drawable:
+                    exp.draw(surface, self.camera)
+        for enemies in self.wave.enemies.values():
+            for e in enemies:
+                if e.drawable:
+                    e.draw(surface, self.camera)
         self.player.draw(surface, self.camera)
         self.hud.draw(surface)
         self.crosshair.draw(surface)
@@ -338,37 +367,7 @@ class SimGame(BaseScreen):
 
     def update(self):
         self.wave.update(self.player.pos)
-        for e in self.wave.enemies.copy():
-            e.update(self.player.pos)
-            if e.stats['hp'] == 0:
-                self.exp_points.append(ExpPoint(e.pos.x, e.pos.y, e.exp))
-                self.wave.enemies.remove(e)
-                continue
         self.wave.converge()
-        for e in self.wave.enemies:
-            if self.player.mask.overlap(e.mask, (e.pos.x - self.player.pos.x, e.pos.y - self.player.pos.y)):
-                self.player.stats['hp'] -= e.dmg
-        for bullet in self.player.casts.copy():
-            if abs(bullet.pos.x - self.player.pos.x) > Config.WIDTH // 2 or \
-                    abs(bullet.pos.y - self.player.pos.y) > Config.HEIGHT // 2:
-                self.player.casts.remove(bullet)
-                continue
-            for e in self.wave.enemies.copy():
-                if bullet.mask.overlap(e.mask, (e.pos.x - bullet.pos.x, e.pos.y - bullet.pos.y)):
-                    e.add_dmg(bullet.get_dmg())
-                    self.player.casts.remove(bullet)
-                    break
-        for exp in self.exp_points.copy():
-            if abs(self.player.pos.x - exp.pos.x) < Config.WIDTH // 2 and \
-                    abs(self.player.pos.y - exp.pos.y) < Config.HEIGHT // 2:
-                exp.drawable = True
-                if exp.mask.overlap(self.player.mask, (self.player.pos.x - exp.pos.x, self.player.pos.y - exp.pos.y)):
-                    if self.player.add_exp(exp.value):
-                        self.next_state = 'upgrade'
-                    self.exp_points.remove(exp)
-                    continue
-            else:
-                exp.drawable = False
         self.map.update_background(self.player.pos)
         if self.player.stats['hp'] <= 0:
             self.next_state = "main menu"
@@ -378,11 +377,9 @@ class SimGame(BaseScreen):
         self.map.draw(surface)
         self.camera.update_player(self.player.pos.x, self.player.pos.y)
         self.camera.update_camera()
-        for exp in self.exp_points:
-            if exp.drawable:
-                exp.draw(surface, self.camera)
-        for e in self.wave.enemies:
-            e.draw(surface, self.camera)
+        for enemies in self.wave.enemies.values():
+            for e in enemies:
+                e.draw(surface, self.camera)
         self.player.draw(surface, self.camera)
         for notification in self.notifications.copy():
             if notification[0] == 0:

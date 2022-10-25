@@ -2,10 +2,22 @@ import pygame as pg
 import os.path
 import glob
 from math import cos, sin, radians
+from functools import lru_cache
 
 
 def get_angled_vector(angle):
     return pg.Vector2(cos(radians(angle)), sin(radians(angle)))
+
+
+@lru_cache(30)
+def get_sector_range(sector, delimiter=","):
+    return [f"{x}{delimiter}{y}" for x, y in ((sector[0] + a, sector[1] + b) for a in range(-1, 2) for b in range(-1, 2))]
+
+
+@lru_cache(30)
+def str_sector_range(str_sect, delimiter=","):
+    s = str_sect.split(delimiter)
+    return [f"{x}{delimiter}{y}" for x, y in ((int(s[0]) + a, int(s[1]) + b) for a in range(-1, 2) for b in range(-1, 2))]
 
 
 def create_text_object(text, font, position: tuple, color, max_size=(0, 0), line_width=20):
