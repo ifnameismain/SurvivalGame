@@ -137,8 +137,9 @@ class GameScreen(BaseScreen):
                         if bullet.state == 1:
                             if bullet.check_collision(self.camera.player_relative(e.pos.x, e.pos.y), e.radius):
                                 e.add_dmg(bullet.get_dmg())
-            if bullet.dmg_tick > 0.5:
-                bullet.dmg_tick -= 0.5
+            if isinstance(bullet, StatusBomb):
+                if bullet.dmg_tick > 0.5:
+                    bullet.dmg_tick -= 0.5
         for i in delete_list[::-1]:
             self.player.casts.pop(i)
         if self.player.stats['lvl'] != prev_lvl:

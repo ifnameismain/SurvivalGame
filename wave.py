@@ -19,8 +19,7 @@ class Wave:
     def new_wave(self):
         self.num += 1
         self.spawn_rate += 0.001
-        self.wave_time = 0
-        self.timer -= Config.DT
+        self.timer -= self.wave_time
 
     def converge(self):
         for sector, enemies in self.enemies.items():
