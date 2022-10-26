@@ -78,14 +78,12 @@ class BaseEnemy:
             if "chance" not in key:
                 self.status[key] = val
                 self.status_inflicted[key] += 1
-        print(self.status_inflicted)
 
     def inflict_status(self, key, val):
         if key == "slow":
             self.stats['speed'] = self.stats['base speed'] - 0.03 * val
         else:
             self.stats['hp'] -= self.calculate_status_dmg(key, val)
-            print(self.calculate_status_dmg(key, val))
 
     def calculate_status_dmg(self, s, a):
         if s == 'normal':
