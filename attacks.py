@@ -17,6 +17,8 @@ class Bullet:
         self.final_state = 1
         self.mask = pg.mask.from_surface(self.surface)
         self.sector = [self.pos.x//Config.CHUNK_SIZE, self.pos.y//Config.CHUNK_SIZE]
+        s = 1 + self.radius // Config.CHUNK_SIZE
+        self.sector_range = [-s, s+1, -s, s+1]
 
     def get_dmg(self):
         return self.dmg
@@ -57,7 +59,7 @@ class StatusBomb:
         self.pos = pg.Vector2(x, y)
         self.target = pg.Vector2(target_x, target_y)
         self.velocity = velocity
-        self.time = int(self.pos.distance_to(self.target) // (self.velocity.magnitude()*Config.DT))
+        self.time = self.pos.distance_to(self.target) / (self.velocity.magnitude())
         self.state = 0 if self.time != 0 else 1
         self.bomb_type = bomb_type
         self.color = color
@@ -70,31 +72,35 @@ class StatusBomb:
         self.create_surface()
         self.final_state = 3
         self.sector = [self.pos.x // Config.CHUNK_SIZE, self.pos.y // Config.CHUNK_SIZE]
+        self.sector_range = [0, 0, 0, 0]
 
     def update(self):
         if self.state == 0:
             self.pos.update(self.pos.x + self.velocity.x * Config.DT, self.pos.y + self.velocity.y * Config.DT)
-            self.time -= 1
-            if self.time == 0:
+            self.time -= Config.DT
+            if self.time <= 0:
                 self.state = 1
+                self.time = 0
                 self.pos.update(self.target.x, self.target.y)
                 self.radius = int(self.base_radius - (self.time - 1) * self.step)
-            self.sector[0] = int(self.pos.x//Config.CHUNK_SIZE)
-            self.sector[1] = int(self.pos.y//Config.CHUNK_SIZE)
+            self.sector[0] = int(self.pos.x // Config.CHUNK_SIZE)
+            self.sector[1] = int(self.pos.y // Config.CHUNK_SIZE)
         elif self.state == 1:
-            self.time += 1
-            self.dmg_tick += 1
-            self.radius = int(self.base_radius - (self.time - 1) * self.step)
-            if self.time == 120:
+            self.time += Config.DT
+            self.dmg_tick += Config.DT
+            self.radius = int(self.base_radius - (60*self.time - 1) * self.step)
+            s = 1 + self.radius // Config.CHUNK_SIZE
+            self.sector_range = [-s, s + 1, -s, s + 1]
+            if self.time >= 2:
                 self.state = 2
                 self.time = 0
         else:
-            self.time += 1
-            if self.time == 60:
+            self.time += Config.DT
+            if self.time >= 1:
                 self.state = 3
 
     def get_dmg(self):
-        if self.dmg_tick % 30 == 1:
+        if self.dmg_tick > 0.5:
             return self.dmg
         else:
             return {}
@@ -110,10 +116,10 @@ class StatusBomb:
         if self.state == 0:
             win.blit(self.surface, (x - self.radius, y - self.radius))
         elif self.state == 1:
-            win.blit(self.surfaces[self.bomb_type][self.time], (x - self.radius, y - self.radius),
+            win.blit(self.surfaces[self.bomb_type][int(60 * self.time)], (x - self.radius, y - self.radius),
                      special_flags=pg.BLEND_RGB_MAX)
         else:
-            win.blit(self.shatters[self.bomb_type][self.time],  (x - self.shatters['offset'][0],
+            win.blit(self.shatters[self.bomb_type][int(60 * self.time)],  (x - self.shatters['offset'][0],
                                                                  y - self.shatters['offset'][1]),
                      special_flags=pg.BLEND_RGB_MAX)
 

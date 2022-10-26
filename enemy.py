@@ -11,9 +11,9 @@ class BaseEnemy:
     shattered_array = pg.Surface((20, 20))
     shattered_array.set_colorkey((0, 0, 0))
     pg.draw.circle(shattered_array, (255, 255, 255), (10, 10), 10, 1)
-    shattered_array = shattered_image(shattered_array.copy(), step=3)
+    shattered_array = shattered_image(shattered_array, step=3)
 
-    def __init__(self, x, y, radius, hp, dmg, speed, color):
+    def __init__(self, x, y, radius, hp, dmg, speed, color, sector):
         self.pos = pg.Vector2(x, y)
         self.color = color
         self.radius = radius
@@ -37,8 +37,11 @@ class BaseEnemy:
         self.surface.set_colorkey((0, 0, 0))
         self.create_surface()
         self.mask = pg.mask.from_surface(self.surface)
-        self.attack_ready = True
         self.attack_timer = 0
+        # sector information
+        self.sector_percentage = [self.pos.x % Config.CHUNK_SIZE, self.pos.y % Config.CHUNK_SIZE]
+        self.sector = sector
+        self.sectors = get_sector_range(sector)
 
     @property
     def death_animation(self):
@@ -75,12 +78,14 @@ class BaseEnemy:
             if "chance" not in key:
                 self.status[key] = val
                 self.status_inflicted[key] += 1
+        print(self.status_inflicted)
 
     def inflict_status(self, key, val):
         if key == "slow":
             self.stats['speed'] = self.stats['base speed'] - 0.03 * val
         else:
             self.stats['hp'] -= self.calculate_status_dmg(key, val)
+            print(self.calculate_status_dmg(key, val))
 
     def calculate_status_dmg(self, s, a):
         if s == 'normal':
@@ -96,11 +101,11 @@ class BaseEnemy:
             self.stats['hp percentage'] = 0
         else:
             self.stats['hp percentage'] = self.stats['hp']/self.stats['max hp']
-        return int(self.stats['hp percentage']/0.01)
+        return int(100 * self.stats['hp percentage'])
 
     def calculate_status(self):
         prev_hp = self.stats['hp']
-        for key, val in self.status_inflicted.copy().items():
+        for key, val in self.status_inflicted.items():
             if val != 0:
                 if self.status_tick_timers[key] >= self.status_tick_rates[key]:
                     self.status_tick_timers[key] -= self.status_tick_rates[key]
@@ -112,18 +117,21 @@ class BaseEnemy:
                 self.create_surface()
 
     def converge(self, other):
-        if other.radius > self.radius:
-            self.radius = other.radius + sqrt(self.radius) / 3
-        else:
-            self.radius += sqrt(other.radius) / 3
+        self.num_converge += other.num_converge + 1
+        if self.num_converge < 30:
+            if other.radius > self.radius:
+                self.radius = other.radius + sqrt(self.radius) / 3
+            else:
+                self.radius += sqrt(other.radius) / 3
+            self.create_surface(new_radius=True)
+        elif self.radius != 25:
+            self.radius = 25
         self.stats['hp'] += other.stats['hp']
         self.stats['max hp'] += other.stats['max hp']
         self.stats['hp percentage'] = self.stats['hp'] / self.stats['max hp']
         self.exp += other.exp
-        self.num_converge += other.num_converge + 1
-        self.create_surface(new_radius=True)
 
-    def update(self, player_pos):
+    def update(self, player_pos, sector):
         if self.pos.x - self.radius > player_pos.x + Config.WIDTH // 2 or self.pos.x + self.radius < player_pos.x - Config.WIDTH // 2:
             self.drawable = False
         elif self.pos.y - self.radius > player_pos.y + Config.HEIGHT // 2 or self.pos.y + self.radius < player_pos.y - Config.HEIGHT // 2:
@@ -141,12 +149,17 @@ class BaseEnemy:
         sy = sx * self.gradient
         if self.pos.x > player_pos.x:
             self.pos.x -= sx
+            self.sector_percentage[0] -= sx
         else:
             self.pos.x += sx
+            self.sector_percentage[0] += sx
         if self.pos.y > player_pos.y:
             self.pos.y -= sy
+            self.sector_percentage[1] -= sy
         else:
             self.pos.y += sy
+            self.sector_percentage[1] += sy
+        self.update_sector(sector)
         self.calculate_status()
 
     def create_surface(self, new_radius=False):
@@ -170,24 +183,41 @@ class BaseEnemy:
         x, y = camera.object_pos(self.pos.x, self.pos.y)
         win.blit(self.surface, (x - self.radius, y - self.radius))
 
-    def able_to_dmg(self):
-        if not self.attack_ready:
-            self.attack_timer += Config.DT
-            if self.attack_timer >= 1:
-                self.attack_timer = 0
-                self.attack_ready = True
+    def update_sector(self, sector):
+        if sector != self.sector:
+            self.sector = sector
+        redo_sector = False
+        x = [0, 1, 0, 1]
+        if any(0 > x or x > Config.CHUNK_SIZE for x in self.sector_percentage):
+            self.sector_percentage[0] = self.pos.x % Config.CHUNK_SIZE
+            self.sector_percentage[1] = self.pos.y % Config.CHUNK_SIZE
+            redo_sector = True
+        if self.sector_percentage[0] < self.radius:
+            x[0] = -1
+            redo_sector = True
+        elif self.sector_percentage[0] > Config.CHUNK_SIZE - self.radius:
+            x[1] = 2
+            redo_sector = True
+        if self.sector_percentage[1] < self.radius:
+            x[2] = -1
+            redo_sector = True
+        elif self.sector_percentage[1] > Config.CHUNK_SIZE - self.radius:
+            x[3] = 2
+            redo_sector = True
+        if redo_sector:
+            self.sectors = get_sector_range(self.sector, *x)
 
 
 class NormalEnemy(BaseEnemy):
     color = (210, 105, 30)
 
-    def __init__(self, x, y):
-        super().__init__(x, y, 10, 50, 1, 60, self.color)
+    def __init__(self, x, y, sector):
+        super().__init__(x, y, 10, 50, 20, 60, self.color, sector)
 
 
 class Dasher(BaseEnemy):
-    def __init__(self, x, y):
-        super().__init__(x, y, 4, 30, 10, 60, (38, 242, 143))
+    def __init__(self, x, y, sector):
+        super().__init__(x, y, 4, 30, 10, 60, (38, 242, 143), sector)
         self.dashing = False
         self.dash_calculated = False
         self.dash_speed = 5
@@ -201,7 +231,7 @@ class Dasher(BaseEnemy):
         self.line = [(0, 0), (0, 0)]
         self.attack_timer = 1
 
-    def update(self, player_pos):
+    def update(self, player_pos, sector):
         if self.cooldown:
             self.cooldown_timer -= Config.DT
             if self.cooldown_timer == 0:
@@ -213,7 +243,7 @@ class Dasher(BaseEnemy):
                     self.dashing = True
                     self.dash(player_pos)
             else:
-                super().update(player_pos)
+                super().update(player_pos, sector)
         else:
             self.dash(player_pos)
 
@@ -265,20 +295,20 @@ class Dasher(BaseEnemy):
 
 
 class MageEnemy(BaseEnemy):
-    def __init__(self, x, y):
-        super().__init__(x, y, 4, 30, 10, 60, (38, 242, 143))
+    def __init__(self, x, y, sector):
+        super().__init__(x, y, 4, 30, 10, 60, (38, 242, 143), sector)
         self.type = "mage"
 
-    def update(self, player_pos):
-        super().update(player_pos)
+    def update(self, player_pos, sector):
+        super().update(player_pos, sector)
 
     def draw(self, win, camera):
         super().draw(win, camera)
 
 
 class KamikazeEnemy(BaseEnemy):
-    def __init__(self, x, y):
-        super().__init__(x, y, 5, 10, 50, 180, random.choice([Config.BACKGROUND, Config.ALT_BACKGROUND]))
+    def __init__(self, x, y, sector):
+        super().__init__(x, y, 5, 10, 50, 180, random.choice([Config.BACKGROUND, Config.ALT_BACKGROUND]), sector)
         self.type = "kamikaze"
 
     def create_surface(self, new_radius=False):
@@ -298,8 +328,8 @@ class KamikazeEnemy(BaseEnemy):
     def converge(self, other):
         pass
 
-    def update(self, player_pos):
-        super().update(player_pos)
+    def update(self, player_pos, sector):
+        super().update(player_pos, sector)
 
 
 

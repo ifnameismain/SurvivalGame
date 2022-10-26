@@ -28,7 +28,7 @@ class Config:
     BACKGROUND = (120, 120, 120)
     ALT_BACKGROUND = (100, 100, 100)
     TILE_SIZE = 64
-    CHUNK_SIZE = 64
+    CHUNK_SIZE = 25
     WAVE_TIME = 20
     EXP_SIZE = 4
     BLIT_FPS = int(_config['window']['blit_fps'])

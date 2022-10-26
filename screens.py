@@ -68,7 +68,12 @@ class GameScreen(BaseScreen):
         prev_lvl = self.player.stats['lvl']
         for sector, enemies in self.wave.enemies.items():
             for i, e in enumerate(enemies):
-                e.update(self.player.pos)
+                e.update(self.player.pos, sector)
+                e.calculate_status()
+                if nots := e.notification:
+                    for n in nots:
+                        self.notifications.append([0.5, n])
+                e.set_inflicted()
                 if e.stats['hp'] <= 0 or (e.type == 'kamikaze' and not e.attack_ready):
                     if sector not in self.exp_points.keys():
                         self.exp_points[sector] = [ExpPoint(e.pos.x, e.pos.y, e.exp)]
@@ -77,7 +82,7 @@ class GameScreen(BaseScreen):
                     self.death_animations.append([0, *e.death_animation])
                     delete_dict[sector].append(i)
                 else:
-                    if (sec := f"{int(e.pos.x//Config.CHUNK_SIZE)},{int(e.pos.y//Config.CHUNK_SIZE)}") != sector:
+                    if (sec := (int(e.pos.x//Config.CHUNK_SIZE), int(e.pos.y//Config.CHUNK_SIZE))) != sector:
 
                         if sec not in append_dict.keys():
                             append_dict[sec] = [e]
@@ -93,14 +98,16 @@ class GameScreen(BaseScreen):
                     self.wave.enemies[sector] = [e]
                 else:
                     self.wave.enemies[sector].append(e)
+        for sector in delete_dict.keys():
+            if len(self.wave.enemies[sector]) == 0:
+                self.wave.enemies.pop(sector)
         self.wave.converge()
         # self.player.stats['hp'] -= len(self.player.rect.collidelistall([e.rect for e in self.wave.enemies]))
         for sector in get_sector_range(tuple(self.player.sector)):
             for e in self.wave.enemies.get(sector, []):
-                if e.attack_ready and self.player.mask.overlap(e.mask, (e.pos.x - self.player.pos.x, e.pos.y - self.player.pos.y)):
-                    self.player.stats['hp'] -= e.dmg
+                if self.player.mask.overlap(e.mask, (e.pos.x - self.player.pos.x, e.pos.y - self.player.pos.y)):
+                    self.player.stats['hp'] -= e.dmg * Config.DT
                     e.attack_ready = False
-                e.able_to_dmg()
             # probably add to delete dict
             for i, exp in enumerate(self.exp_points.get(sector, []).copy()[::-1]):
                 if self.player.mask.overlap(exp.mask, (exp.pos.x - self.player.pos.x, exp.pos.y - self.player.pos.y)):
@@ -115,7 +122,7 @@ class GameScreen(BaseScreen):
             elif bullet.state == bullet.final_state:
                 self.player.casts.remove(bullet)
                 continue
-            for sector in get_sector_range(tuple(bullet.sector)):
+            for sector in get_sector_range(tuple(bullet.sector), *bullet.sector_range):
                 for e in self.wave.enemies.get(sector, []):
                     if isinstance(bullet, Bullet):
                         if bullet.pos.distance_to(e.pos) < e.radius + bullet.radius:
@@ -130,15 +137,10 @@ class GameScreen(BaseScreen):
                         if bullet.state == 1:
                             if bullet.check_collision(self.camera.player_relative(e.pos.x, e.pos.y), e.radius):
                                 e.add_dmg(bullet.get_dmg())
+            if bullet.dmg_tick > 0.5:
+                bullet.dmg_tick -= 0.5
         for i in delete_list[::-1]:
             self.player.casts.pop(i)
-        for enemies in self.wave.enemies.values():
-            for e in enemies:
-                e.calculate_status()
-                if nots := e.notification:
-                    for n in nots:
-                        self.notifications.append([0.5, n])
-                e.set_inflicted()
         if self.player.stats['lvl'] != prev_lvl:
             self.next_state = ['upgrade', self.player.stats['lvl'] - prev_lvl]
         self.hud.update(self.player.stats['hp'] / self.player.stats['max hp'],
@@ -167,19 +169,23 @@ class GameScreen(BaseScreen):
         self.player.draw(surface, self.camera)
         self.hud.draw(surface)
         self.crosshair.draw(surface)
-        for notification in self.notifications.copy():
+        delete_list = []
+        for i, notification in enumerate(self.notifications):
             if notification[0] <= 0:
-                self.notifications.remove(notification)
+                delete_list.append(i)
             else:
                 surface.blit(notification[1][0], self.camera.object_pos(*notification[1][1]))
                 notification[0] -= Config.DT
+        for i in delete_list[::-1]:
+            del self.notifications[i]
         finished_animations = []
-        for count, (i, animation, pos, size) in enumerate(self.death_animations.copy()):
-            if i == len(animation) - 1:
+        for count, (time, animation, pos, size) in enumerate(self.death_animations):
+            t = int(60 * time)
+            if t >= len(animation) - 1:
                 finished_animations.append(count)
             else:
-                surface.blit(animation[i], self.camera.object_pos(pos.x - size[0]//2, pos.y - size[0]//2))
-                self.death_animations[count][0] += 1
+                surface.blit(animation[t], self.camera.object_pos(pos.x - size[0]//2, pos.y - size[0]//2))
+                self.death_animations[count][0] += Config.DT
         finished_animations.reverse()
         for i in finished_animations:
             del self.death_animations[i]

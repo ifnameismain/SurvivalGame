@@ -10,14 +10,8 @@ def get_angled_vector(angle):
 
 
 @lru_cache(30)
-def get_sector_range(sector, delimiter=","):
-    return [f"{x}{delimiter}{y}" for x, y in ((sector[0] + a, sector[1] + b) for a in range(-1, 2) for b in range(-1, 2))]
-
-
-@lru_cache(30)
-def str_sector_range(str_sect, delimiter=","):
-    s = str_sect.split(delimiter)
-    return [f"{x}{delimiter}{y}" for x, y in ((int(s[0]) + a, int(s[1]) + b) for a in range(-1, 2) for b in range(-1, 2))]
+def get_sector_range(sector, xs=-1, xe=2, ys=-1, ye=2):
+    return [(sector[0] + a, sector[1] + b) for a in range(xs, xe) for b in range(ys, ye)]
 
 
 def create_text_object(text, font, position: tuple, color, max_size=(0, 0), line_width=20):
