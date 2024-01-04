@@ -1,5 +1,5 @@
 # SurvivalGame
-Survival rouge game written with pygame
+Survival rouge game written with only pygame, no images
 
 ## Next Steps
 1. Fix config.py Config class... needs more research
